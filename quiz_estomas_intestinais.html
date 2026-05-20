@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Estomas Intestinais</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff7ed; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { max-width: 780px; width: 100%; }
+    .start-screen { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .start-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 48px 32px; }
+    .start-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .start-header p { opacity: 0.85; font-size: 1rem; }
+    .start-body { padding: 40px 32px; }
+    .start-body p { color: #374151; font-size: 1rem; line-height: 1.6; margin-bottom: 8px; }
+    .badge-row { display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .badge { background: #fff7ed; border: 2px solid #ea580c; color: #c2410c; border-radius: 999px; padding: 6px 20px; font-size: 0.875rem; font-weight: 600; }
+    .btn-start { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .quiz-screen { display: none; }
+    .progress-bar-wrap { background: #fed7aa; border-radius: 999px; height: 8px; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #7c2d12, #ea580c); border-radius: 999px; height: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-bottom: 6px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 20px 24px; }
+    .card-header .q-num { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .card-body { padding: 28px 24px; }
+    .question-text { font-size: 1rem; color: #111827; line-height: 1.65; margin-bottom: 24px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-size: 0.92rem; color: #374151; line-height: 1.45; transition: all 0.15s; text-align: left; width: 100%; }
+    .opt:hover:not(.disabled) { border-color: #ea580c; background: #fff7ed; }
+    .opt.correct { background: #fff7ed; border-color: #ea580c; color: #7c2d12; }
+    .opt.wrong { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+    .opt.disabled { cursor: default; }
+    .feedback { margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; line-height: 1.55; display: none; }
+    .feedback.correct { background: #fff7ed; border-left: 4px solid #ea580c; color: #7c2d12; }
+    .feedback.wrong { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+    .btn-next { display: none; margin-top: 20px; background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 13px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; float: right; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,0.4); }
+    .clearfix { clear: both; }
+    .result-screen { display: none; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .result-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 40px 32px; }
+    .result-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .score-big { font-size: 4rem; font-weight: 800; margin: 16px 0; }
+    .result-body { padding: 36px 32px; }
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 12px; padding: 20px 28px; min-width: 120px; }
+    .stat .val { font-size: 2rem; font-weight: 700; color: #ea580c; }
+    .stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .stat.wrong-stat .val { color: #dc2626; }
+    .stat.wrong-stat { border-color: #fecaca; background: #fef2f2; }
+    .btn-retry { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 14px 40px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .question-img { max-width: 100%; border-radius: 6px; margin: 10px 0 16px 0; display: block; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-header">
+      <h1>Estomas Intestinais</h1>
+      <p>Tipos · Indicações · Confecção · Complicações</p>
+    </div>
+    <div class="start-body">
+      <p>Quiz de casos clínicos sobre estomas intestinais — indicações, técnicas cirúrgicas, cuidados e manejo de complicações.</p>
+      <div class="badge-row">
+        <span class="badge">20 questões</span>
+        <span class="badge">Casos clínicos</span>
+        <span class="badge">Cirurgia</span>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Começar</button>
+    </div>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-label">
+      <span id="progressText">Questão 1 de 20</span>
+      <span id="scoreText">Acertos: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="q-num" id="qNum">Questão 1</div>
+      </div>
+      <div class="card-body">
+        <div id="questionImg"></div>
+        <p class="question-text" id="questionText"></p>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próxima questão →</button>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-header">
+      <h2>Quiz concluído!</h2>
+      <div class="score-big" id="scorePct">--%</div>
+    </div>
+    <div class="result-body">
+      <div class="stats">
+        <div class="stat"><div class="val" id="statCorrect">-</div><div class="lbl">Acertos</div></div>
+        <div class="stat wrong-stat"><div class="val" id="statWrong">-</div><div class="lbl">Erros</div></div>
+        <div class="stat"><div class="val" id="statTotal">-</div><div class="lbl">Total</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">Refazer quiz</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const imagens = {};
+
+const rawQuestions = [
+  {
+    question: "Paciente com retocolite ulcerativa grave refratária é submetido a colectomia total de emergência. O cirurgião cria uma abertura do íleo para a superfície abdominal para desviar o trânsito intestinal. Qual é a definição formal desse procedimento?",
+    imageKey: null,
+    options: [
+      "Ostomia intestinal: exteriorização cirúrgica de segmento intestinal pela parede abdominal",
+      "Enterorrafia protetora: sutura intestinal com exclusão do segmento distal inflamado",
+      "Enterotomia exploradora: abertura da luz intestinal para avaliação do segmento distal",
+      "Anastomose de proteção: conexão entre dois segmentos para desviar o trânsito intestinal",
+      "Fistulostomia intestinal: criação de fístula controlada para alívio da pressão intraluminal"
+    ],
+    correctIndex: 0,
+    explanation: "Ostomia (do grego stoma = 'boca/abertura') é a abertura criada cirurgicamente de um órgão oco para a superfície corporal, com objetivo de desviar o trânsito ou permitir drenagem. Uma ostomia intestinal é a exteriorização de um segmento do intestino pela parede abdominal, permitindo a saída de fezes e gases. Os mais comuns são a ileostomia (íleo) e a colostomia (cólon)."
+  },
+  {
+    question: "Cirurgião realiza ressecção anterior baixa do reto para adenocarcinoma e decide criar um estoma temporário de proteção. Ele exterioriza uma alça de íleo pela parede abdominal, criando dois óstios lado a lado na mesma abertura cutânea. Qual é o tipo de estoma?",
+    imageKey: null,
+    options: [
+      "Ileostomia em alça (loop): dois óstios lado a lado (oral proximal e aboral distal) na mesma abertura",
+      "Ileostomia terminal: segmento completamente exteriorizado com único óstio e coto distal fechado",
+      "Colostomia dupla boca (Mikulicz): exteriorização de segmentos diferentes lado a lado",
+      "Gastrostomia de proteção: exteriorização do estômago para descompressão temporária",
+      "Cecostomia em alça: exteriorização do ceco com dois óstios para descompressão colônica"
+    ],
+    correctIndex: 0,
+    explanation: "A ileostomia em alça (loop ileostomy) é um estoma criado exteriorizando uma alça de íleo pela parede abdominal, com dois óstios lado a lado na mesma abertura: a boca oral (proximal, que drena fezes) posicionada caudalmente e a boca aboral (distal). É usada como proteção temporária de anastomoses baixas, podendo ser revertida após cicatrização anastomótica (geralmente 8-12 semanas)."
+  },
+  {
+    question: "Paciente com obstrução colônica por neoplasia de cólon sigmoide irressecável necessita de derivação paliativa. O cirurgião opta por colostomia terminal com fechamento do coto distal e mucous fistula. O que é a mucous fistula nesse contexto?",
+    imageKey: null,
+    options: [
+      "Exteriorização do coto distal como segundo ostio, evitando coto cego fechado intracavitário",
+      "Fístula formada espontaneamente entre o coto distal e a pele por deiscência da sutura",
+      "Coleção mucosa formada no coto distal fechado, que drena espontaneamente pela incisão",
+      "Orifício criado na boca oral para lavagem da alça proximal e controle de infecções",
+      "Comunicação entre o cólon proximal e distal mantida para preservar flora intestinal normal"
+    ],
+    correctIndex: 0,
+    explanation: "Na colostomia terminal com mucous fistula (técnica de Hartmann modificada), o coto distal é exteriorizado como um segundo estoma (mucous fistula) em vez de ser deixado fechado intracavitário. Isso evita o risco de deiscência do coto distal cego no interior da cavidade abdominal, que poderia causar peritonite grave. Facilita também a futura reversão do estoma com melhor identificação do coto distal."
+  },
+  {
+    question: "Paciente com tumor de reto baixo localmente avançado, após neoadjuvância com radio-quimioterapia, é submetido à proctectomia com anastomose coloanal. O cirurgião cria ileostomia de proteção. Qual é a principal indicação clínica dessa derivação?",
+    imageKey: null,
+    options: [
+      "Proteção de anastomoses baixas de alto risco: radioterapia prévia aumenta risco de deiscência",
+      "Controle de sepse por peritonite fecal já estabelecida com derivação de urgência imediata",
+      "Derivação paliativa por obstrução tumoral irressecável que impede o trânsito intestinal",
+      "Incontinência fecal grave refratária ao tratamento conservador com derivação definitiva",
+      "Preparo oncológico para radioterapia adjuvante que requer cólon vazio durante as sessões"
+    ],
+    correctIndex: 0,
+    explanation: "A proteção de anastomoses é uma das principais indicações de derivação intestinal temporária. Anastomoses colorretais baixas, especialmente após radioterapia pélvica prévia (que compromete a vascularização e cicatrização tecidual), têm risco elevado de deiscência anastomótica — complicação grave que pode causar peritonite e sepse. A ileostomia de proteção desvia o trânsito fecal até confirmação da integridade anastomótica."
+  },
+  {
+    question: "Residente de cirurgia pergunta sobre a marcação pré-operatória do estoma. Dentro de qual estrutura anatômica o estoma deve ser preferencialmente posicionado?",
+    imageKey: null,
+    options: [
+      "Dentro dos limites do músculo reto abdominal, que oferece suporte e estabilidade ao estoma",
+      "No quadrante inferior esquerdo do abdome, independente da musculatura subjacente",
+      "Na linha alba, que oferece menor vascularização e facilita a cicatrização cutânea",
+      "Na linha semilunar, que demarca a borda lateral do reto e serve de referência anatômica",
+      "Na fossa ilíaca esquerda, afastado da crista ilíaca para facilitar a colocação do dispositivo"
+    ],
+    correctIndex: 0,
+    explanation: "O estoma deve ser marcado dentro dos limites do músculo reto abdominal, que oferece suporte e estabilidade estrutural, reduzindo o risco de hérnia paraestomal e retração. O posicionamento deve ser avaliado com o paciente em diferentes posições (deitado, sentado e em pé) para identificar dobras cutâneas. Deve-se afastar de cicatrizes, dobras, linha do cinto e áreas não visíveis ao próprio paciente."
+  },
+  {
+    question: "Enfermeiro orientando paciente com ileostomia recém-confeccionada explica a frequência ideal de troca do dispositivo coletor. Qual é a frequência correta para ileostomia e colostomia?",
+    imageKey: null,
+    options: [
+      "Ileostomia: troca a cada 4 dias; colostomia: troca a cada 6-7 dias",
+      "Ileostomia: troca diária; colostomia: troca a cada 3-4 dias",
+      "Ileostomia: troca a cada 7 dias; colostomia: troca a cada 10-14 dias",
+      "Ambas trocadas a cada 48-72 horas independente do segmento exteriorizado",
+      "Ileostomia: troca semanal; colostomia: troca quinzenal em estomas bem adaptados"
+    ],
+    correctIndex: 0,
+    explanation: "A frequência de troca do dispositivo coletor difere entre os estomas: ileostomia a cada 4 dias em média (efluente líquido e com enzimas digestivas que irritam a pele mais rapidamente); colostomia a cada 6-7 dias (efluente mais formado e menos agressivo à pele periestomal). A bolsa coletora deve ser esvaziada 3-4 vezes ao dia, quando estiver 1/3 cheia, ou sempre que houver vazamento."
+  },
+  {
+    question: "Paciente com ileostomia apresenta débito de 2.200 mL/24h, com sinais de desidratação e hiponatremia. Qual é o diagnóstico e qual é o limiar de débito que define essa condição?",
+    imageKey: null,
+    options: [
+      "Ileostomia de alto débito: débito > 1500-2000 mL/24h requer intervenção imediata",
+      "Ileostomia de alto débito: débito > 500-800 mL/24h é o limiar para intervenção clínica",
+      "Diarreia por estoma: débito > 3000 mL/24h sem impacto clínico em ileostomias funcionais",
+      "Retração estomal: débito aumentado por má vedação do dispositivo coletor com vazamento",
+      "Prolapso do estoma: exteriorização excessiva da mucosa causando secreção aumentada"
+    ],
+    correctIndex: 0,
+    explanation: "Alto débito de ileostomia é definido como débito superior a 1500-2000 mL/24h. Requer intervenção imediata para prevenir desidratação grave e distúrbios eletrolíticos (principalmente hiponatremia e hipocalemia). O manejo inclui restrição de líquidos hipotônicos, soluções de reidratação oral, loperamida, codeína ou análogos de somatostatina (octreotide). A causa deve ser investigada (infecção, obstrução parcial, fármaco)."
+  },
+  {
+    question: "Paciente em 2º dia de pós-operatório de colostomia apresenta estoma com coloração escura, quase negra. O cirurgião avalia e decide levar ao centro cirúrgico de urgência. O que determinou essa conduta?",
+    imageKey: null,
+    options: [
+      "Isquemia profunda abaixo da fáscia: risco de peritonite, sepse e necrose do segmento",
+      "Isquemia superficial acima da fáscia: observação cuidadora com cuidados locais por 24-48h",
+      "Retração estomal: estoma abaixo de 0,5 cm da pele, aumentando risco de vazamento",
+      "Prolapso intestinal: exteriorização excessiva da mucosa com risco de estrangulamento",
+      "Hérnia paraestomal: protrusão perilesional que comprime e altera a perfusão do estoma"
+    ],
+    correctIndex: 0,
+    explanation: "A isquemia/necrose é a complicação precoce mais grave dos estomas. A conduta depende da profundidade: isquemia superficial (acima da fáscia) → observação com cuidados locais nas primeiras 24-48h, geralmente resolve. Isquemia profunda (abaixo da fáscia) → reoperação de urgência por risco de peritonite, sepse e necessidade de ressecção do segmento necrótico. Sinais de alerta: coloração escura/negra, ausência de sangramento na mucosa, friabilidade, febre e leucocitose."
+  },
+  {
+    question: "Médico avalia paciente com ileostomia que reclama de vazamento frequente e dermatite periestomal intensa. Ao exame, o estoma se encontra 0,3 cm abaixo do nível da pele. Qual é o diagnóstico da complicação do estoma?",
+    imageKey: null,
+    options: [
+      "Retração do estoma: < 0,5 cm abaixo da pele, com vazamentos e dermatite periestomal",
+      "Estenose do estoma: estreitamento do lúmen com fezes em fio e dificuldade evacuatória",
+      "Prolapso do estoma: exteriorização excessiva da mucosa pelo orifício abdominal",
+      "Hérnia paraestomal: protrusão de alças pelo defeito da fáscia ao redor do estoma",
+      "Isquemia do estoma: coloração escura por comprometimento vascular do segmento"
+    ],
+    correctIndex: 0,
+    explanation: "A retração do estoma é definida como posicionamento do estoma a menos de 0,5 cm abaixo do nível da pele. Aumenta significativamente o risco de vazamento (o efluente flui sob o dispositivo coletor em vez de cair diretamente nele) e dermatite periestomal pela exposição da pele ao efluente. O manejo inclui dispositivos convexos (base convexa) e cintos de fixação. Em casos graves, é necessária revisão cirúrgica."
+  },
+  {
+    question: "Paciente com colostomia em alça queixa-se de 'intestino saindo pelo buraco' durante manobras de Valsalva. Ao exame, nota-se extrusão de mucosa pelo orifício do estoma. Qual é a complicação e qual segmento tem maior risco?",
+    imageKey: null,
+    options: [
+      "Prolapso do estoma: mais comum em loop colostomias e estomas móveis com mesentério longo",
+      "Hérnia paraestomal: protrusão de alças pelo defeito da fáscia, sem saída de mucosa",
+      "Retração do estoma: afundamento abaixo da pele com vazamento, sem extrusão de alça",
+      "Estenose do estoma: estreitamento do orifício com obstrução e dificuldade evacuatória",
+      "Isquemia do estoma: comprometimento vascular com mucosa escura, friável e sem sangramento"
+    ],
+    correctIndex: 0,
+    explanation: "O prolapso do estoma é a exteriorização excessiva do intestino pelo orifício do estoma. É mais comum em loop colostomias (principalmente no ramo distal) e em estomas com mesentério longo e móvel. Esforços (Valsalva, tosse) precipitam o prolapso. Manejo conservador: redução manual delicada com compressas frias, cintas abdominais. Cirúrgico (se irredutível ou recorrente): revisão do estoma."
+  },
+  {
+    question: "Paciente com colostomia há 2 anos nota esvaziamento difícil, fezes saindo em fio fino e episódios de distensão abdominal. O exame do estoma revela orifício estreitado que não aceita o dedo indicador. Qual é a complicação?",
+    imageKey: null,
+    options: [
+      "Estenose do estoma: complicação tardia com estreitamento luminal em nível cutâneo ou profundo",
+      "Prolapso do estoma: exteriorização excessiva de mucosa com redução aparente do orifício",
+      "Retração do estoma: afundamento abaixo da pele com orifício visualmente reduzido",
+      "Hérnia paraestomal: protrusão perilesional que comprime o lúmen do segmento exteriorizado",
+      "Isquemia crônica: fibrose progressiva por hipoperfusão que estreita o lúmen gradualmente"
+    ],
+    correctIndex: 0,
+    explanation: "A estenose do estoma é uma complicação geralmente tardia, que ocorre no nível cutâneo ou em planos mais profundos. O quadro clínico inclui dificuldade evacuatória, fezes em fio fino, distensão abdominal e até obstrução. O diagnóstico é clínico (dificuldade de introduzir o dedo). Tratamento: dilatações digitais ou instrumentais para estenoses leves; revisão cirúrgica para casos graves ou com obstrução."
+  },
+  {
+    question: "Paciente obesa com colostomia terminal há 3 anos apresenta abaulamento ao redor do estoma, especialmente ao se levantar. A tomografia confirma herniação de alças pelo defeito da fáscia. Qual é a prevalência e os principais fatores de risco dessa complicação?",
+    imageKey: null,
+    options: [
+      "Hérnia paraestomal: ocorre em até 50% dos casos; risco por obesidade, DPOC, idade e desnutrição",
+      "Hérnia paraestomal: ocorre em 5-10% dos casos; risco por tabagismo, atividade física e ansiedade",
+      "Prolapso do estoma: ocorre em até 50% dos casos; risco por mesentério longo e esforços físicos",
+      "Retração do estoma: ocorre em até 50% dos casos; risco por infecção local e obesidade",
+      "Isquemia do estoma: ocorre em 50% dos casos; risco por doença vascular periférica e diabetes"
+    ],
+    correctIndex: 0,
+    explanation: "A hérnia paraestomal ocorre em até 50% dos casos de colostomia ou ileostomia, sendo uma das complicações tardias mais frequentes. Principais fatores de risco: obesidade (aumenta pressão intra-abdominal), DPOC (tosse crônica e esforço), idade avançada e desnutrição. Prevenção: tela profilática em casos selecionados (colostomia terminal). Tratamento cirúrgico: técnica de Sugarbaker (interposição de malha) ou reconstrução com tela."
+  },
+  {
+    question: "Paciente submetido a colectomia direita com ileostomia de proteção há 10 semanas. A tomografia confirma integridade anastomótica e o paciente quer reverter o estoma. Qual é o timing ideal e as condições necessárias para a reversão?",
+    imageKey: null,
+    options: [
+      "8-12 semanas após a cirurgia índice, com cicatrização anastomótica e estado nutricional adequados",
+      "4-6 semanas após a cirurgia índice, assim que cessa o débito pelo estoma temporário",
+      "6 meses após a cirurgia, independente do estado nutricional e da integridade anastomótica",
+      "Imediatamente após quimioterapia adjuvante, pois o intervalo mínimo é de 3-4 ciclos",
+      "24 semanas após a cirurgia, período mínimo para maturação da anastomose coloanal baixa"
+    ],
+    correctIndex: 0,
+    explanation: "O timing ideal para reversão da ileostomia é geralmente 8-12 semanas após a cirurgia índice. Critérios de segurança: cicatrização adequada da anastomose (confirmada por imagem ou endoscopia), estado nutricional satisfatório e, se aplicável, conclusão da quimioterapia adjuvante. A técnica de reversão inclui dissecção subcutânea ao redor do estoma, abertura cuidadosa da alça e anastomose término-terminal ou látero-lateral manual."
+  },
+  {
+    question: "Cirurgião confecciona ileostomia e aplica a técnica de maturação de Brooke. Em que consiste essa técnica e qual é a protrusão ideal para a ileostomia?",
+    imageKey: null,
+    options: [
+      "Eversão da mucosa com sutura mucocutânea; protrusão ideal de 2-2,5 cm para ileostomia",
+      "Fixação da serosa à fáscia sem eversão da mucosa; protrusão mínima de 0,5 cm no nível da pele",
+      "Eversão total do segmento com protrusão de 4-5 cm para facilitar a adaptação do dispositivo",
+      "Sutura da mucosa à pele sem eversão; protrusão de 1-1,5 cm como no modelo de colostomia",
+      "Fixação apenas da fáscia sem sutura mucocutânea; protrusão de 3-4 cm para maior segurança"
+    ],
+    correctIndex: 0,
+    explanation: "A maturação tipo Brooke consiste na eversão da mucosa intestinal sobre si mesma, com sutura mucocutânea — criando uma 'boca' proeminente (protrusa) que direciona o efluente para dentro da bolsa coletora, sem contato com a pele periestomal. A protrusão ideal é de 2-2,5 cm para ileostomia (efluente líquido e corrosivo) e 1-1,5 cm para colostomia (efluente mais formado e menos agressivo)."
+  },
+  {
+    question: "Cirurgião realiza incisão circular na pele para confeccionar estoma. Qual deve ser o diâmetro dessa incisão e o princípio que orienta esse tamanho?",
+    imageKey: null,
+    options: [
+      "2-3 cm de diâmetro, congruente ao calibre do segmento intestinal a ser exteriorizado",
+      "4-5 cm de diâmetro para garantir que não haja estrangulamento do intestino exteriorizado",
+      "1 cm de diâmetro, o menor possível para reduzir o risco de hérnia paraestomal tardia",
+      "Igual ao diâmetro do dedo do cirurgião, por ser referência técnica universal em cirurgia",
+      "Variável conforme o segmento: íleo = 1 cm; cólon sigmoide = 3-4 cm de diâmetro"
+    ],
+    correctIndex: 0,
+    explanation: "A incisão cutânea circular deve ter 2-3 cm de diâmetro, congruente ao calibre do segmento intestinal a ser exteriorizado. Uma incisão muito pequena pode estrangular o intestino; uma incisão muito grande facilita a formação de hérnia paraestomal. O trajeto deve ser criado sem desvios através de todos os planos da parede abdominal (pele, subcutâneo, fáscia, peritônio), mantendo alinhamento adequado."
+  },
+  {
+    question: "Paciente com gastroparesia grave após vagotomia truncal e antrectomia necessita de suporte nutricional enteral de longo prazo, mas o estômago não pode ser utilizado. Qual é a indicação do estoma para esse caso?",
+    imageKey: null,
+    options: [
+      "Jejunostomia: acesso direto ao jejuno para nutrição enteral quando o estômago é inutilizável",
+      "Gastrostomia: acesso ao estômago indicado quando há gastroparesia e obstrução gástrica",
+      "Ileostomia terminal: exteriorização do íleo para nutrição enteral distal em longo prazo",
+      "Colostomia de alça: acesso ao cólon para infusão de nutrientes em pacientes sem delgado",
+      "Cecostomia: acesso ao ceco para nutrição enteral quando o delgado não é acessível"
+    ],
+    correctIndex: 0,
+    explanation: "A jejunostomia estabelece acesso direto ao jejuno para nutrição enteral em pacientes cujas condições gástricas (gastroparesia, obstrução, gastrectomia) impedem o uso do estômago. É uma alternativa vital para suporte nutricional de longo prazo. A técnica de Witzel cria um túnel seroso para o posicionamento da sonda. A gastrostomia percutânea endoscópica (PEG) não é factível quando o estômago está doente ou inacessível endoscopicamente."
+  },
+  {
+    question: "Residente pergunta quando indicar gastrostomia percutânea endoscópica (PEG) versus gastrostomia cirúrgica (Stamm). Qual é a indicação da gastrostomia cirúrgica?",
+    imageKey: null,
+    options: [
+      "Quando a via endoscópica é inacessível (tumor de faringe/esôfago, cirurgia gástrica prévia)",
+      "Em todos os pacientes com disfagia, independente de haver acesso endoscópico disponível",
+      "Exclusivamente em crianças menores de 2 anos por contraindicação endoscópica nessa faixa",
+      "Quando o paciente recusa procedimento endoscópico e prefere cirurgia aberta programada",
+      "Apenas em centros sem serviço de endoscopia digestiva ou em unidades de emergência rural"
+    ],
+    correctIndex: 0,
+    explanation: "A PEG é o método mais comum e minimamente invasivo para gastrostomia. A gastrostomia cirúrgica (técnica de Stamm — com suturas em bolsa e fixação do estômago à parede abdominal) é indicada quando a via endoscópica é inacessível ou contraindicada: tumores obstrutivos de faringe/esôfago, cirurgia gástrica prévia com anatomia alterada, impossibilidade de transiluminação ou situações em que a laparotomia já está indicada por outro motivo."
+  },
+  {
+    question: "Ao planejar o sítio do estoma, o cirurgião avalia o paciente obeso em posição ortostática. Qual região abdominal deve ser priorizada nesses pacientes para facilitar a visualização e o autocuidado?",
+    imageKey: null,
+    options: [
+      "Quadrante superior do abdome: paciente obeso visualiza melhor a região acima do panículo",
+      "Fossa ilíaca esquerda: sítio anatômico padrão independente do biotipo do paciente",
+      "Região periumbilical: área central que o paciente vê com facilidade em qualquer biotipo",
+      "Hipogástrio: região infraumbilical padrão que facilita o autocuidado em todos os casos",
+      "Flancos laterais: áreas laterais com menos dobras cutâneas e melhor fixação do dispositivo"
+    ],
+    correctIndex: 0,
+    explanation: "Em pacientes obesos, o panículo adiposo abdominal inferior dificulta a visualização e o autocuidado do estoma posicionado em fossa ilíaca. Por isso, recomenda-se considerar o quadrante superior do abdome, onde o paciente consegue ver e manusear o dispositivo coletor sem obstáculos. O princípio geral é que o estoma deve estar em área que o próprio paciente consiga visualizar e manusear com facilidade."
+  },
+  {
+    question: "Paciente com incontinência fecal grave por lesão esfincteriana irrecuperável, refratária ao tratamento conservador e cirúrgico reconstrutivo, é avaliado para derivação definitiva. Qual é o tipo de estoma indicado e sua característica quanto à reversibilidade?",
+    imageKey: null,
+    options: [
+      "Colostomia terminal definitiva: derivação permanente para incontinência refratária grave",
+      "Ileostomia em alça temporária: derivação provisória até recuperação do esfíncter anal",
+      "Colostomia em alça temporária: estoma reversível com dois óstios até reavaliação clínica",
+      "Cecostomia percutânea: derivação minimamente invasiva definitiva para incontinência grave",
+      "Gastrostomia de alimentação: derivação nutricional que indiretamente reduz o efluente fecal"
+    ],
+    correctIndex: 0,
+    explanation: "A disfunção grave do assoalho pélvico com incontinência fecal refratária a todas as outras abordagens (incluindo esfincteroplastia, estimulação sacral e biofeedback) pode indicar derivação intestinal definitiva com colostomia terminal. Diferentemente dos estomas temporários (que protegem anastomoses ou controlam sepse e podem ser revertidos), estomas definitivos são permanentes e geralmente feitos com cólon sigmoide como colostomia terminal."
+  },
+  {
+    question: "Paciente com peritonite fecal por perfuração de cólon diverticular é operado de urgência. O cirurgião realiza sigmoidectomia, fecha o coto retal e exterioriza o cólon proximal como colostomia terminal (cirurgia de Hartmann). Qual é a principal justificativa para não realizar anastomose primária nesse cenário?",
+    imageKey: null,
+    options: [
+      "Controle séptico: peritonite fecal e inflamação grave aumentam o risco de deiscência anastomótica",
+      "Obstrução tumoral: a neoplasia associada contraindica anastomose em qualquer cirurgia de urgência",
+      "Proteção de anastomose: toda anastomose colorretal de urgência requer estoma de proteção",
+      "Disfunção esfincteriana prévia: a incontinência impossibilita a anastomose colorretal baixa",
+      "Tempo cirúrgico: anastomose primária prolonga a cirurgia além do aceitável em emergências"
+    ],
+    correctIndex: 0,
+    explanation: "Na peritonite fecal por perfuração de cólon, o ambiente intra-abdominal contaminado e a resposta inflamatória sistêmica grave aumentam muito o risco de deiscência de anastomose primária. A cirurgia de Hartmann (sigmoidectomia + colostomia terminal + fechamento do coto retal) é o procedimento padrão nesse cenário: controla rapidamente a fonte séptica sem o risco de uma anastomose em campo infectado. A reconstrução do trânsito (reversão de Hartmann) é feita posteriormente em cirurgia eletiva."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+  current = 0; score = 0;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progressText').textContent = `Questão ${current + 1} de ${total}`;
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+  document.getElementById('qNum').textContent = `Questão ${current + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+  const imgContainer = document.getElementById('questionImg');
+  if (q.imageKey && imagens[q.imageKey]) {
+    imgContainer.innerHTML = `<img src="${imagens[q.imageKey]}" class="question-img" alt="Imagem da questão">`;
+  } else { imgContainer.innerHTML = ''; }
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correctIndex) {
+    score++;
+    opts[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correto!</strong> ${q.explanation}`;
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correctIndex].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>✗ Incorreto.</strong> ${q.explanation}`;
+  }
+  fb.style.display = 'block';
+  const btnNext = document.getElementById('btnNext');
+  btnNext.style.display = 'inline-block';
+  btnNext.textContent = current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado';
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = questions.length - score;
+  document.getElementById('statTotal').textContent = questions.length;
+}
+
+function retryQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>
