@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Bases Técnicas da Cirurgia do Intestino Delgado</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff7ed; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { max-width: 780px; width: 100%; }
+    .start-screen { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .start-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 48px 32px; }
+    .start-header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .start-header p { opacity: 0.85; font-size: 1rem; }
+    .start-body { padding: 40px 32px; }
+    .start-body p { color: #374151; font-size: 1rem; line-height: 1.6; margin-bottom: 8px; }
+    .badge-row { display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .badge { background: #fff7ed; border: 2px solid #ea580c; color: #c2410c; border-radius: 999px; padding: 6px 20px; font-size: 0.875rem; font-weight: 600; }
+    .btn-start { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .quiz-screen { display: none; }
+    .progress-bar-wrap { background: #fed7aa; border-radius: 999px; height: 8px; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #7c2d12, #ea580c); border-radius: 999px; height: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-bottom: 6px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 20px 24px; }
+    .card-header .q-num { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .card-body { padding: 28px 24px; }
+    .question-text { font-size: 1rem; color: #111827; line-height: 1.65; margin-bottom: 24px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-size: 0.92rem; color: #374151; line-height: 1.45; transition: all 0.15s; text-align: left; width: 100%; }
+    .opt:hover:not(.disabled) { border-color: #ea580c; background: #fff7ed; }
+    .opt.correct { background: #fff7ed; border-color: #ea580c; color: #7c2d12; }
+    .opt.wrong { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+    .opt.disabled { cursor: default; }
+    .feedback { margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; line-height: 1.55; display: none; }
+    .feedback.correct { background: #fff7ed; border-left: 4px solid #ea580c; color: #7c2d12; }
+    .feedback.wrong { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+    .btn-next { display: none; margin-top: 20px; background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 13px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; float: right; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,0.4); }
+    .clearfix { clear: both; }
+    .result-screen { display: none; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .result-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 40px 32px; }
+    .result-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .score-big { font-size: 4rem; font-weight: 800; margin: 16px 0; }
+    .result-body { padding: 36px 32px; }
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 12px; padding: 20px 28px; min-width: 120px; }
+    .stat .val { font-size: 2rem; font-weight: 700; color: #ea580c; }
+    .stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .stat.wrong-stat .val { color: #dc2626; }
+    .stat.wrong-stat { border-color: #fecaca; background: #fef2f2; }
+    .btn-retry { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 14px 40px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .question-img { max-width: 100%; border-radius: 6px; margin: 10px 0 16px 0; display: block; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-header">
+      <h1>Bases Técnicas da Cirurgia do Intestino Delgado</h1>
+      <p>Anatomia · Técnicas · Anastomoses · Indicações</p>
+    </div>
+    <div class="start-body">
+      <p>Quiz de casos clínicos sobre anatomia cirúrgica, técnicas operatórias e anastomoses do intestino delgado.</p>
+      <div class="badge-row">
+        <span class="badge">20 questões</span>
+        <span class="badge">Casos clínicos</span>
+        <span class="badge">Cirurgia</span>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Começar</button>
+    </div>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-label">
+      <span id="progressText">Questão 1 de 20</span>
+      <span id="scoreText">Acertos: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="q-num" id="qNum">Questão 1</div>
+      </div>
+      <div class="card-body">
+        <div id="questionImg"></div>
+        <p class="question-text" id="questionText"></p>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próxima questão →</button>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-header">
+      <h2>Quiz concluído!</h2>
+      <div class="score-big" id="scorePct">--%</div>
+    </div>
+    <div class="result-body">
+      <div class="stats">
+        <div class="stat"><div class="val" id="statCorrect">-</div><div class="lbl">Acertos</div></div>
+        <div class="stat wrong-stat"><div class="val" id="statWrong">-</div><div class="lbl">Erros</div></div>
+        <div class="stat"><div class="val" id="statTotal">-</div><div class="lbl">Total</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">Refazer quiz</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const imagens = {};
+
+const rawQuestions = [
+  {
+    question: "Paciente com histórico de ressecção extensa do intestino delgado por isquemia mesentérica apresenta diarreia crônica, má absorção de nutrientes e perda de peso. O remanescente intestinal mede 95 cm. Qual síndrome essa extensão caracteriza?",
+    imageKey: null,
+    options: [
+      "Síndrome do intestino curto: remanescente < 110 cm (1,1 m) com má absorção grave",
+      "Síndrome pós-gastrectomia: ressecção gástrica com trânsito acelerado e diarreia",
+      "Enteropatia perdedora de proteínas: linfangiectasia com diarreia e hipoalbuminemia",
+      "Síndrome de dumping: esvaziamento gástrico rápido com hiperglicemia pós-prandial",
+      "Supercrescimento bacteriano: proliferação no intestino com má absorção de B12 e gordura"
+    ],
+    correctIndex: 0,
+    explanation: "A síndrome do intestino curto ocorre quando o remanescente intestinal é menor que 1,1 m (110 cm). O intestino delgado normal mede 1,5-3 metros. Abaixo de 1,1 m, a absorção de nutrientes, água e eletrólitos fica gravemente comprometida, levando a diarreia, desnutrição e dependência de nutrição parenteral. O cólon intacto ameniza o quadro."
+  },
+  {
+    question: "Cirurgião explica a residentes sobre as válvulas coniventes do intestino delgado. Em que segmento elas são mais abundantes e onde desaparecem?",
+    imageKey: null,
+    options: [
+      "Mais abundantes no jejuno; começam no duodeno proximal e desaparecem no íleo terminal",
+      "Mais abundantes no íleo terminal; ausentes no duodeno e escassas no jejuno proximal",
+      "Presentes exclusivamente no duodeno, desaparecendo na junção duodenojejunal (ângulo de Treitz)",
+      "Distribuídas uniformemente por todo o delgado, sem variação de densidade por segmento",
+      "Mais abundantes no íleo médio; ausentes no duodeno proximal e no jejuno proximal"
+    ],
+    correctIndex: 0,
+    explanation: "As válvulas coniventes (pregas de Kerckring) são dobras mucosas que aumentam a área interna do intestino em até 3x, diminuem a velocidade do trânsito e aumentam a absorção de nutrientes. São mais abundantes no jejuno, começam no duodeno proximal e desaparecem progressivamente em direção ao íleo terminal. Sua ausência no Rx simples sugere que se trata de íleo distal."
+  },
+  {
+    question: "Durante laparotomia exploradora por abdome agudo, o cirurgião identifica extensa isquemia mesentérica. Qual é a principal artéria responsável pela irrigação do intestino delgado?",
+    imageKey: null,
+    options: [
+      "Artéria mesentérica superior (AMS): principal responsável pela irrigação do intestino delgado",
+      "Artéria mesentérica inferior (AMI): principal responsável pela irrigação do intestino delgado",
+      "Artéria celíaca: irriga exclusivamente o estômago, fígado, baço e pâncreas proximal",
+      "Artéria ilíaca interna: irriga principalmente o reto e órgãos pélvicos, não o delgado",
+      "Artéria gástrica esquerda: irriga a curvatura menor gástrica e o esôfago distal"
+    ],
+    correctIndex: 0,
+    explanation: "O intestino delgado é irrigado principalmente pela artéria mesentérica superior (AMS), que origina ramos para o jejuno, íleo e metade direita do cólon. A irrigação é troncular — dependência de poucos ramos principais — o que significa que uma trombose extensa pode causar isquemia grave e extensa. A drenagem venosa segue a veia mesentérica superior (VMS) → veia porta."
+  },
+  {
+    question: "Paciente com adenocarcinoma do cólon sigmoide é submetido a colectomia laparoscópica. O oncologista explica que o fígado é o primeiro sítio de metástase. Por quê?",
+    imageKey: null,
+    options: [
+      "A drenagem venosa do cólon segue a VMS → veia esplênica → veia porta → fígado",
+      "O cólon tem irrigação pela artéria mesentérica superior que drena diretamente no fígado",
+      "O linfonodos mesentéricos drenam primeiro no ducto torácico e depois na circulação portal",
+      "O fígado sintetiza fatores tróficos que atraem células metastáticas do cólon especificamente",
+      "A artéria hepática irriga diretamente o cólon sigmoide por anastomose com ramos mesentéricos"
+    ],
+    correctIndex: 0,
+    explanation: "O cólon drena seu sangue venoso para a veia mesentérica superior (e inferior), que desemboca na veia esplênica formando a veia porta hepática. Toda a circulação venosa do intestino passa obrigatoriamente pelo fígado antes de atingir a circulação sistêmica. Por isso, as células tumorais que entram na corrente sanguínea fazem sua primeira 'parada' no fígado — tornando-o o primeiro sítio de metástase do câncer colorretal."
+  },
+  {
+    question: "Cirurgião avalia alça intestinal após redução de hérnia encarcerada. A cor está levemente arroxeada, mas a alça parece viável. Qual é o parâmetro mais confiável para confirmar a viabilidade do intestino delgado?",
+    imageKey: null,
+    options: [
+      "Peristaltismo ativo: o movimento peristáltico indica viabilidade, não a coloração da alça",
+      "Coloração rósea brilhante: a cor é o parâmetro primário de viabilidade intestinal",
+      "Temperatura ao toque: alça quente indica vascularização preservada e viabilidade",
+      "Ausência de odor fétido: a putrefação sugere necrose antes da alteração de cor",
+      "Consistência elástica: alça amolecida indica necrose mesmo com peristaltismo presente"
+    ],
+    correctIndex: 0,
+    explanation: "O peristaltismo é o parâmetro mais confiável para avaliar a viabilidade do intestino delgado — NÃO a coloração. A alça pode estar arroxeada temporariamente por ingurgitamento venoso e ainda ser viável se mantiver contrações peristálticas. Complementarmente, o verde de indocianina (ICG) pode ser injetado IV para visualização fluorescente do fluxo sanguíneo e delimitar com precisão a área de isquemia."
+  },
+  {
+    question: "Residente questiona sobre as desvantagens anatômicas do intestino delgado para a cirurgia. Qual trecho do intestino tem localização retroperitoneal, limitando a mobilidade cirúrgica e aumentando o risco de lesão de grandes vasos?",
+    imageKey: null,
+    options: [
+      "2ª a 4ª porção do duodeno: retroperitoneal, com risco de lesão da aorta e veia cava inferior",
+      "Íleo terminal: fixo à fossa ilíaca direita pelo mesentério curto, com mobilidade reduzida",
+      "Jejuno proximal: aderido ao retroperitônio pela fáscia de Toldt, sem mobilidade cirúrgica",
+      "Ângulo de Treitz: fixo ao ligamento suspensor com mobilidade reduzida e risco cirúrgico",
+      "Duodeno proximal (1ª porção): retroperitoneal, com risco de lesão do ducto de Wirsung"
+    ],
+    correctIndex: 0,
+    explanation: "As 2ª, 3ª e 4ª porções do duodeno são retroperitoneais, aderidas à parede posterior do abdome. Isso limita a mobilidade cirúrgica e aumenta o risco de lesão de estruturas adjacentes como a aorta abdominal, veia cava inferior, ureter e grandes vasos mesentéricos durante dissecções nessa região. A 1ª porção do duodeno é intraperitoneal e mais móvel."
+  },
+  {
+    question: "Em cirurgia de enterectomia por necrose isquêmica, o cirurgião observa que a borda contramesenterial da alça está mais comprometida que o lado mesentérico. Qual é a explicação anatômica?",
+    imageKey: null,
+    options: [
+      "Irrigação terminal: os vasos chegam à borda contramesenterial no final do trajeto arterial",
+      "Maior espessura da parede: a borda contramesenterial tem mais camadas musculares isquêmicas",
+      "Ausência de linfonodos: a borda contramesenterial carece de suporte linfático protetor",
+      "Maior concentração de válvulas coniventes: aumentam a demanda metabólica local dessa borda",
+      "Menor quantidade de células de Cajal: redução do peristaltismo com estase e isquemia local"
+    ],
+    correctIndex: 0,
+    explanation: "A borda contramesenterial (lado oposto ao mesentério) é criticamente dependente de irrigação terminal — os vasos percorrem toda a extensão do mesentério e chegam a essa borda ao final do trajeto. Por isso, é a área mais vulnerável à isquemia em casos de hipoperfusão, e é a região mais crítica para a confecção de anastomoses. É importante incluir bem a borda contramesenterial nas ressecções."
+  },
+  {
+    question: "Cirurgião vai realizar enterotomia para retirada de corpo estranho ingerido. Em qual parede e em qual direção deve ser feita a incisão? E como deve ser feito o fechamento?",
+    imageKey: null,
+    options: [
+      "Incisão na parede antimesentérica em sentido longitudinal; fechamento sempre transversal",
+      "Incisão na parede mesentérica em sentido transversal; fechamento sempre longitudinal",
+      "Incisão na parede antimesentérica em sentido transversal; fechamento longitudinal também",
+      "Incisão em qualquer parede em sentido longitudinal; fechamento também longitudinal",
+      "Incisão na parede mesentérica em sentido longitudinal; fechamento transversal para prevenir estenose"
+    ],
+    correctIndex: 0,
+    explanation: "Em enterotomias (abertura da luz intestinal): a incisão deve ser feita na PAREDE ANTIMESENTÉRICA (lado oposto ao mesentério) em sentido LONGITUDINAL, preservando a vascularização. O FECHAMENTO (rafia) deve ser feito em sentido TRANSVERSAL — perpendicular à incisão — para evitar estenose do lúmen intestinal. Essa regra 'abre longitudinal, fecha transversal' é um princípio fundamental da cirurgia intestinal."
+  },
+  {
+    question: "Residente pergunta: 'Por que a rafia intestinal deve ser feita sempre no sentido transversal?' Qual é a justificativa correta?",
+    imageKey: null,
+    options: [
+      "Sutura transversal evita estenose do lúmen ao não reduzir a circunferência intestinal",
+      "Sutura transversal segue a direção das fibras musculares circulares, com melhor cicatrização",
+      "Sutura transversal permite mais camadas de pontos sem distorcer a anatomia do mesentério",
+      "Sutura transversal evita lesão dos vasos mesentéricos que correm paralelos ao lúmen",
+      "Sutura transversal é mais rápida e tecnicamente menos exigente do que a longitudinal"
+    ],
+    correctIndex: 0,
+    explanation: "A sutura (rafia) em sentido transversal — perpendicular ao eixo longo do intestino — aumenta efetivamente a circunferência luminal no ponto de fechamento, prevenindo estenose. Uma sutura longitudinal, ao contrário, reduziria a circunferência intestinal e criaria um ponto de estreitamento que poderia causar obstrução. Por isso: abertura = longitudinal; fechamento = transversal."
+  },
+  {
+    question: "Cirurgião precisa realizar anastomose intestinal após ressecção. As extremidades têm calibres muito diferentes — uma alça dilatada (obstruída) e outra de calibre normal. Qual tipo de anastomose é mais adequado?",
+    imageKey: null,
+    options: [
+      "Anastomose látero-lateral (side-to-side): permite uniformizar o calibre entre alças diferentes",
+      "Anastomose término-terminal: une as duas extremidades de forma direta, independente do calibre",
+      "Anastomose término-lateral: une a extremidade de uma alça à lateral de outra com calibre diferente",
+      "Anastomose com grampeador linear: o grampeador equaliza automaticamente qualquer diferença de calibre",
+      "Anastomose em dois planos: a dupla camada de pontos compensa as diferenças de calibre entre as alças"
+    ],
+    correctIndex: 0,
+    explanation: "Na anastomose látero-lateral (side-to-side), as duas alças são unidas pelas suas paredes laterais, criando uma abertura ampla que não depende do calibre das extremidades. É especialmente útil quando há discrepância de calibre entre os segmentos (alça dilatada + alça normal). A anastomose término-terminal exige calibres semelhantes. A término-lateral pode ser usada com calibres diferentes, unindo a extremidade de uma à lateral da outra."
+  },
+  {
+    question: "Em enterectomia, o cirurgião posiciona os clamps intestinais de forma oblíqua ao invés de perpendicular ao eixo da alça. Qual é a razão técnica?",
+    imageKey: null,
+    options: [
+      "Clampe oblíquo preserva mais comprimento na borda antimesentérica, melhorando a vascularização",
+      "Clampe perpendicular seria tecnicamente mais simples, mas o oblíquo garante borda hemostática",
+      "Clampe oblíquo aumenta a circunferência da anastomose, reduzindo o risco de estenose futura",
+      "Clampe oblíquo evita lesão do mesentério ao respeitar o ângulo dos pedículos vasculares",
+      "Clampe oblíquo é padrão de indústria para grampeadores lineares e não tem outra justificativa"
+    ],
+    correctIndex: 0,
+    explanation: "O posicionamento oblíquo dos clampes (e da secção intestinal) em enterectomia é uma técnica que preserva maior comprimento de alça na borda antimesentérica — que é a região de menor vascularização — aumentando a circunferência da anastomose e reduzindo o risco de estenose. Também compensa a menor irrigação da borda contramesenterial ao incluir mais tecido viável nessa borda."
+  },
+  {
+    question: "Paciente necessita de enterectomia segmentar de 30 cm de íleo. Qual é a sequência correta dos passos cirúrgicos?",
+    imageKey: null,
+    options: [
+      "Ligadura dos pedículos vasculares → isolamento → clampes oblíquos → secção → anastomose",
+      "Isolamento do segmento → secção → ligadura dos pedículos vasculares → anastomose",
+      "Clampes oblíquos → secção → ligadura dos pedículos → isolamento → anastomose",
+      "Secção intestinal → ligadura vascular → isolamento → clampes → anastomose terminal",
+      "Anastomose prévia → clampes → secção → ligadura dos pedículos → isolamento final"
+    ],
+    correctIndex: 0,
+    explanation: "A sequência correta da enterectomia é: (1) Ligadura dos pedículos vasculares mesentéricos (controla sangramento antes da secção); (2) Isolamento do segmento intestinal a ser ressecado; (3) Posicionamento oblíquo dos clampes nas extremidades a serem seccionadas; (4) Secção intestinal; (5) Anastomose das extremidades remanescentes (término-terminal, término-lateral ou látero-lateral)."
+  },
+  {
+    question: "Cirurgião discute com residente as vantagens da anastomose em dois planos versus plano único. Qual é a principal justificativa para usar dois planos?",
+    imageKey: null,
+    options: [
+      "A serosa intestinal propicia sutura em dois planos, aumentando resistência e hemostasia",
+      "Dois planos de sutura permitem usar fio absorvível interno e não absorvível externo",
+      "Dois planos são obrigatórios por lei em anastomoses de intestino delgado em adultos",
+      "Dois planos são necessários apenas em anastomoses mecânicas com grampeadores lineares",
+      "Dois planos evitam a necessidade de drenagem abdominal no pós-operatório imediato"
+    ],
+    correctIndex: 0,
+    explanation: "Uma das vantagens anatômicas do intestino delgado para cirurgia é que a serosa permite confeccionar a anastomose em dois planos (biplanar): plano interno (mucosa/submucosa) + plano externo (seromuscular). A sutura em dois planos aumenta a resistência, melhora a hemostasia e reduz o risco de fistula anastomótica. A anastomose em plano único é possível, mas requer técnica apurada."
+  },
+  {
+    question: "Cirurgião opta por anastomose mecânica com grampeador em vez de anastomose manual. Quais são as principais vantagens das anastomoses mecânicas?",
+    imageKey: null,
+    options: [
+      "Rapidez, padronização dos pontos e menor variabilidade técnica entre cirurgiões experientes",
+      "Custo mais baixo e disponibilidade universal em todos os serviços de saúde do país",
+      "Menor risco de fístula anastomótica comprovado em meta-análises independentemente do segmento",
+      "Obrigatoriedade em cirurgias laparoscópicas e robóticas por impossibilidade de sutura manual",
+      "Menor necessidade de anestesia geral por serem realizadas com sedação no ambulatório"
+    ],
+    correctIndex: 0,
+    explanation: "As anastomoses mecânicas com grampeadores (staplers) têm como principal vantagem a rapidez, a padronização e a menor variabilidade técnica entre cirurgiões — o grampeador aplica pontos metálicos em linha reta com tensão uniforme. São amplamente usadas em cirurgias laparoscópicas e robóticas. As taxas de fístula são comparáveis à anastomose manual quando bem indicadas, dependendo do segmento e do contexto clínico."
+  },
+  {
+    question: "Paciente em pós-operatório de laparotomia por obstrução intestinal apresenta efluente fecaloide pelo dreno abdominal. A tomografia confirma deiscência de anastomose. Qual é a definição precisa de 'enterostomia'?",
+    imageKey: null,
+    options: [
+      "Exteriorização de uma boca intestinal para fora da cavidade abdominal (ex.: ileostomia, colostomia)",
+      "Abertura da luz intestinal para fins exploratórios ou para retirada de corpo estranho",
+      "Sutura de uma ferida intestinal após trauma ou perfuração, sem exteriorização",
+      "Ressecção segmentar com anastomose imediata das extremidades em um único tempo",
+      "Conexão cirúrgica entre dois segmentos intestinais de diferentes calibres por sutura"
+    ],
+    correctIndex: 0,
+    explanation: "Enterostomia é a exteriorização de uma boca intestinal para a superfície corporal (pele), criando um estoma. Exemplos: ileostomia (íleo exteriorizado), colostomia (cólon exteriorizado), jejunostomia. Não confundir com enterotomia (abertura simples da luz intestinal) nem com rafia (sutura). A enterostomia pode ser terminal (alça seccionada) ou em alça (loop) com estoma de proteção."
+  },
+  {
+    question: "Residente lembra de uma regra mnemônica: 'TOMIAS = abertura; RAFIAS = sutura.' Qual é a aplicação prática dessa regra na cirurgia do intestino delgado?",
+    imageKey: null,
+    options: [
+      "Enterotomia = abertura da luz; enterorrafia = sutura de ferida; enterostomia = exteriorização",
+      "Enterotomia = sutura da luz; enterorrafia = abertura; enterostomia = ressecção intestinal",
+      "Enterotomia = ressecção; enterorrafia = anastomose; enterostomia = abertura exploratória",
+      "Enterotomia = exteriorização do intestino; enterorrafia = fechamento de orifício natural",
+      "Enterotomia = drenagem de abscesso; enterorrafia = ligadura de pedículo vascular"
+    ],
+    correctIndex: 0,
+    explanation: "A regra é: -TOMIA = abertura (-stomy em inglês); -RAFIA = sutura (-rraphy); -STOMIA = exteriorização para a superfície corporal (estoma). Aplicado ao intestino: enterotomia (abre a luz intestinal), enterorrafia (sutura de ferida intestinal), enterostomia (exterioriza o intestino como ileostomia). Essa nomenclatura é universal em cirurgia e se aplica a todos os órgãos (gastro-, colo-, nefro-, etc.)."
+  },
+  {
+    question: "Cirurgião usa verde de indocianina (ICG) injetado IV durante ressecção intestinal por isquemia. Qual é a finalidade desse corante nesse contexto?",
+    imageKey: null,
+    options: [
+      "Visualizar fluorescentemente a vascularização da alça e delimitar com precisão a área isquêmica",
+      "Colorir a bile para identificar o ducto biliar e evitar lesão durante dissecção hepática",
+      "Marcar os linfonodos mesentéricos para biópsia sentinela durante estadiamento de tumor",
+      "Corar as alças intestinais de verde para melhorar a visibilidade laparoscópica no monitor",
+      "Identificar a anastomose por fluorescência para direcionar a drenagem abdominal pós-op"
+    ],
+    correctIndex: 0,
+    explanation: "O verde de indocianina (ICG) é um corante que se liga às proteínas plasmáticas (incluindo hemácias) e emite fluorescência infravermelha quando iluminado por luz específica. Na cirurgia intestinal, é injetado IV para visualizar em tempo real a perfusão da alça intestinal — áreas com boa vascularização ficam fluorescentes (verdes brilhantes) e áreas isquêmicas permanecem escuras, delimitando precisamente onde ressecar."
+  },
+  {
+    question: "Paciente em pós-operatório de cirurgia gástrica apresenta deiscência e necessita de acesso enteral para nutrição. O cirurgião indica jejunostomia de Weitzel. Qual é a consideração atual sobre esse procedimento?",
+    imageKey: null,
+    options: [
+      "Pouco utilizada atualmente: a sonda pode se perder e causar oclusão da alça intestinal",
+      "É o procedimento padrão-ouro para nutrição enteral em pós-operatório de cirurgia gástrica",
+      "Indicada exclusivamente em crianças menores de 2 anos por segurança e facilidade técnica",
+      "Permanentemente substituída pela gastrostomia percutânea endoscópica em todos os casos",
+      "Contraindicada em pacientes com doença de Crohn por risco aumentado de fistulização"
+    ],
+    correctIndex: 0,
+    explanation: "A jejunostomia de Weitzel era usada como via alimentar enteral quando o estômago não podia ser utilizado. Atualmente, caiu em desuso porque a sonda pode se deslocar do trajeto criado e causar oclusão da alça intestinal — complicação grave. Técnicas mais seguras como gastrostomia percutânea endoscópica (PEG) ou sondas nasojejunais substituíram essa abordagem na maioria dos centros."
+  },
+  {
+    question: "Cirurgião discute as vantagens do intestino delgado para a cirurgia em relação a outros segmentos do tubo digestivo. Quais são as três principais vantagens?",
+    imageKey: null,
+    options: [
+      "Excelente mobilidade, farta irrigação e serosa que propicia sutura em dois planos",
+      "Grande mobilidade, irrigação terminal única e ausência de serosa facilitando suturas",
+      "Mobilidade moderada, irrigação por múltiplos troncos e mucosa resistente a suturas",
+      "Mobilidade limitada pelo mesentério, boa irrigação e mucosa adaptada a dois planos",
+      "Mobilidade excelente, irrigação exclusiva pela mesentérica inferior e serosa espessa"
+    ],
+    correctIndex: 0,
+    explanation: "As três vantagens do intestino delgado para cirurgia são: (1) Excelente mobilidade — o mesentério longo permite manipular e posicionar as alças sem tensão; (2) Farta irrigação — rede anastomótica de arcos arteriais permite ressecções com segurança vascular; (3) Serosa propicia sutura em dois planos — a camada serosa seromuscular permite confecção de anastomose biplanar com boa resistência mecânica."
+  },
+  {
+    question: "Paciente com ileostomia terminal após colectomia total por retocolite ulcerativa apresenta alto débito pelo estoma (> 2L/dia). O cirurgião explica o mecanismo. Qual é a função do íleo terminal que justifica o alto débito nessa situação?",
+    imageKey: null,
+    options: [
+      "O íleo terminal absorve água, eletrólitos e vitamina B12; sua disfunção causa alto débito",
+      "O íleo terminal secreta muco protetor; sua ausência causa diarreia osmótica intensa",
+      "O íleo terminal produz hormônios digestivos (CCK, secretina) que regulam o trânsito colônico",
+      "O íleo terminal absorve exclusivamente lipídeos; sua perda causa esteatorréia e diarreia",
+      "O íleo terminal retém bile e reimporta bilirrubina; sua perda causa diarreia colerética"
+    ],
+    correctIndex: 0,
+    explanation: "O íleo terminal é responsável pela absorção de: vitamina B12 (ligada ao fator intrínseco), sais biliares (circulação êntero-hepática), água e eletrólitos. A ileostomia de alto débito ocorre porque o conteúdo intestinal não passou pelo cólon (que absorve cerca de 1,5-2L de água/dia). Além disso, se o íleo terminal for perdido, há má absorção de sais biliares → diarreia colerética e má absorção de gorduras."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+  current = 0; score = 0;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progressText').textContent = `Questão ${current + 1} de ${total}`;
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+  document.getElementById('qNum').textContent = `Questão ${current + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+  const imgContainer = document.getElementById('questionImg');
+  if (q.imageKey && imagens[q.imageKey]) {
+    imgContainer.innerHTML = `<img src="${imagens[q.imageKey]}" class="question-img" alt="Imagem da questão">`;
+  } else { imgContainer.innerHTML = ''; }
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correctIndex) {
+    score++;
+    opts[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correto!</strong> ${q.explanation}`;
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correctIndex].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>✗ Incorreto.</strong> ${q.explanation}`;
+  }
+  fb.style.display = 'block';
+  const btnNext = document.getElementById('btnNext');
+  btnNext.style.display = 'inline-block';
+  btnNext.textContent = current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado';
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = questions.length - score;
+  document.getElementById('statTotal').textContent = questions.length;
+}
+
+function retryQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>
