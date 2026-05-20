@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Drenos e Sondas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff7ed; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { max-width: 780px; width: 100%; }
+    .start-screen { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .start-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 48px 32px; }
+    .start-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .start-header p { opacity: 0.85; font-size: 1rem; }
+    .start-body { padding: 40px 32px; }
+    .start-body p { color: #374151; font-size: 1rem; line-height: 1.6; margin-bottom: 8px; }
+    .badge-row { display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .badge { background: #fff7ed; border: 2px solid #ea580c; color: #c2410c; border-radius: 999px; padding: 6px 20px; font-size: 0.875rem; font-weight: 600; }
+    .btn-start { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .quiz-screen { display: none; }
+    .progress-bar-wrap { background: #fed7aa; border-radius: 999px; height: 8px; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #7c2d12, #ea580c); border-radius: 999px; height: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-bottom: 6px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 20px 24px; }
+    .card-header .q-num { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .card-body { padding: 28px 24px; }
+    .question-text { font-size: 1rem; color: #111827; line-height: 1.65; margin-bottom: 24px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-size: 0.92rem; color: #374151; line-height: 1.45; transition: all 0.15s; text-align: left; width: 100%; }
+    .opt:hover:not(.disabled) { border-color: #ea580c; background: #fff7ed; }
+    .opt.correct { background: #fff7ed; border-color: #ea580c; color: #7c2d12; }
+    .opt.wrong { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+    .opt.disabled { cursor: default; }
+    .feedback { margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; line-height: 1.55; display: none; }
+    .feedback.correct { background: #fff7ed; border-left: 4px solid #ea580c; color: #7c2d12; }
+    .feedback.wrong { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+    .btn-next { display: none; margin-top: 20px; background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 13px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; float: right; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,0.4); }
+    .clearfix { clear: both; }
+    .result-screen { display: none; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .result-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 40px 32px; }
+    .result-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .score-big { font-size: 4rem; font-weight: 800; margin: 16px 0; }
+    .result-body { padding: 36px 32px; }
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 12px; padding: 20px 28px; min-width: 120px; }
+    .stat .val { font-size: 2rem; font-weight: 700; color: #ea580c; }
+    .stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .stat.wrong-stat .val { color: #dc2626; }
+    .stat.wrong-stat { border-color: #fecaca; background: #fef2f2; }
+    .btn-retry { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 14px 40px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .question-img { max-width: 100%; border-radius: 6px; margin: 10px 0 16px 0; display: block; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-header">
+      <h1>Drenos e Sondas</h1>
+      <p>Classificação · Mecanismos · Indicações clínicas</p>
+    </div>
+    <div class="start-body">
+      <p>Quiz de casos clínicos sobre drenos cirúrgicos, sondas e cateteres — tipos, mecanismos, indicações e materiais.</p>
+      <div class="badge-row">
+        <span class="badge">20 questões</span>
+        <span class="badge">Casos clínicos</span>
+        <span class="badge">Cirurgia</span>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Começar</button>
+    </div>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-label">
+      <span id="progressText">Questão 1 de 20</span>
+      <span id="scoreText">Acertos: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="q-num" id="qNum">Questão 1</div>
+      </div>
+      <div class="card-body">
+        <div id="questionImg"></div>
+        <p class="question-text" id="questionText"></p>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próxima questão →</button>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-header">
+      <h2>Quiz concluído!</h2>
+      <div class="score-big" id="scorePct">--%</div>
+    </div>
+    <div class="result-body">
+      <div class="stats">
+        <div class="stat"><div class="val" id="statCorrect">-</div><div class="lbl">Acertos</div></div>
+        <div class="stat wrong-stat"><div class="val" id="statWrong">-</div><div class="lbl">Erros</div></div>
+        <div class="stat"><div class="val" id="statTotal">-</div><div class="lbl">Total</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">Refazer quiz</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const imagens = {};
+
+const rawQuestions = [
+  {
+    question: "Cirurgião realiza colecistectomia aberta com área de dissecção de alto risco para coleção pequena. Opta por dreno laminar, maleável, radiopaco, feito de látex, com sistema de drenagem aberto. Qual dreno foi escolhido?",
+    imageKey: null,
+    options: [
+      "Dreno de Penrose: laminar, maleável, látex/silicone, sistema aberto, feridas supurativas",
+      "Dreno de Jackson-Pratt: laminar-tubular, silicone, sistema ativo com bulbo de sucção",
+      "Dreno de Kehr: duas hastes tubulares em látex, indicado para drenagem da via biliar",
+      "Porto-VAC: multifenestrado com sanfona de pressão negativa e sistema ativo fechado",
+      "Hemovac: mola circular com pressão negativa, drenagem ativa fechada e quantificável"
+    ],
+    correctIndex: 0,
+    explanation: "O Dreno de Penrose é o mais conhecido dos drenos laminares passivos: feito de látex ou silicone, maleável, radiopaco (visível em Rx/TC) e de sistema aberto. Drena por capilaridade, com o fluido correndo na superfície externa. É indicado para feridas supurativas ou áreas onde se espera pequeno volume de secreção. Por ser aberto, há maior risco de contaminação retrógrada."
+  },
+  {
+    question: "Após exploração da via biliar por coledocolitíase, o cirurgião posiciona dreno de duas hastes tubulares, feito de látex, no interior do colédoco com saída pela parede abdominal. Qual dreno é esse?",
+    imageKey: null,
+    options: [
+      "Dreno de Kehr (tubo em T): duas hastes tubulares de látex para drenagem da via biliar",
+      "Dreno de Penrose: laminar, látex, sistema aberto, indicado para feridas supurativas",
+      "Dreno de Jackson-Pratt: laminar-tubular, silicone, bulbo de sucção, sistema fechado",
+      "Porto-VAC: multifenestrado, sanfona de pressão negativa, retirado em 24-48 horas",
+      "Blake: tubular com canais longitudinais, silicone, sistema ativo com reservatório"
+    ],
+    correctIndex: 0,
+    explanation: "O Dreno de Kehr (ou tubo em T) é um dreno tubular passivo formado por duas hastes de látex dispostas em forma de T. Uma haste fica no colédoco (ducto biliar comum) e a outra sai pela parede abdominal, permitindo drenagem da bile após coledocolitíase, estenoses ou cirurgias hepáticas/biliares."
+  },
+  {
+    question: "Pós-operatório de cirurgia de mama: dreno com porção achatada interna de silicone multifenestrada que impede colabamento, conectada a reservatório em forma de bulbo ('pêra') que mantém baixa pressão negativa. Qual dreno é esse?",
+    imageKey: null,
+    options: [
+      "Dreno de Jackson-Pratt: combina capilaridade laminar com pressão negativa do bulbo",
+      "Dreno de Penrose: laminar, maleável, látex, sem sucção, drenagem passiva aberta",
+      "Porto-VAC: sanfona externa de pressão negativa, retirado de uma vez em 24-48h",
+      "Dreno de Kehr: duas hastes tubulares de látex para drenagem exclusiva de via biliar",
+      "Hemovac: reservatório de mola circular, sistema ativo fechado para grandes cavidades"
+    ],
+    correctIndex: 0,
+    explanation: "O Dreno de Jackson-Pratt é um dreno ativo que combina dois mecanismos: a porção laminar interna (silicone multifenestrado) drena por capilaridade, enquanto o bulbo ('pêra') mantém pressão negativa ativa. É um sistema fechado (reduz contaminação) que permite quantificar o exsudato drenado. Muito usado em cirurgias de mama, abdominais e ortopédicas."
+  },
+  {
+    question: "Paciente pós-prostatectomia radical tem dreno multifenestrado não colabável conectado a dispositivo em forma de sanfona que gera e mantém pressão negativa. O cirurgião planeja retirar o dreno de uma única vez após 24-48h. Qual é esse dreno?",
+    imageKey: null,
+    options: [
+      "Porto-VAC: sanfona multifenestrada de pressão negativa, retirado em bloco em 24-48h",
+      "Dreno de Jackson-Pratt: bulbo em pêra que mantém baixa pressão negativa de forma ativa",
+      "Hemovac: mola circular com pressão negativa, drenagem ativa para grandes volumes",
+      "Dreno de Penrose: laminar, látex, sistema passivo aberto, feridas supurativas simples",
+      "Dreno de Kehr: duas hastes de látex em T para drenagem exclusiva da via biliar principal"
+    ],
+    correctIndex: 0,
+    explanation: "O Porto-VAC é um dreno ativo (sistema fechado) multifenestrado e não colabável, cuja sanfona externa gera e mantém pressão negativa constante. À medida que o exsudato diminui, o volume do reservatório reduz, e o dreno pode ser retirado de uma única vez após 24-48 horas. Sua natureza fechada reduz o risco de contaminação e permite monitorar com precisão o volume drenado."
+  },
+  {
+    question: "Quais são os três mecanismos principais pelos quais os drenos de sistema passivo removem fluidos de cavidades cirúrgicas?",
+    imageKey: null,
+    options: [
+      "Capilaridade, gravidade e flutuação da pressão intracavitária pelos movimentos respiratórios",
+      "Capilaridade, sucção ativa e flutuação da pressão intracavitária pelos movimentos torácicos",
+      "Gravidade, pressão negativa externa e osmose pelo gradiente de concentração proteica",
+      "Sucção, capilaridade e gradiente osmótico entre cavidade e reservatório externo",
+      "Gravidade, vácuo externo e flutuação da pressão intracavitária por movimentos abdominais"
+    ],
+    correctIndex: 0,
+    explanation: "Os drenos passivos removem fluidos sem fonte externa de sucção, aproveitando forças naturais: (1) Capilaridade: o material poroso/multifilamentar puxa o fluido pelas fibras; (2) Gravidade: o dreno posicionado abaixo da cavidade drena pelo peso do líquido; (3) Flutuação da pressão intracavitária: movimentos respiratórios no tórax criam gradientes que forçam o fluido para fora."
+  },
+  {
+    question: "Paciente com pneumotórax espontâneo esquerdo necessita de drenagem torácica. Em qual local deve ser inserido o dreno para drenagem preferencial de ar?",
+    imageKey: null,
+    options: [
+      "2º ou 3º espaço intercostal esquerdo, na linha hemiclavicular, para drenagem de ar",
+      "5º ou 6º espaço intercostal esquerdo, na linha axilar média, para drenagem de ar",
+      "4º espaço intercostal esquerdo, na linha paraesternal, para drenagem de ar",
+      "7º espaço intercostal esquerdo, na linha axilar posterior, para drenagem de ar",
+      "1º espaço intercostal esquerdo, na linha hemiclavicular, para drenagem de ar"
+    ],
+    correctIndex: 0,
+    explanation: "Para pneumotórax (ar): prioriza-se a porção superior do tórax — 2º ou 3º espaço intercostal, na linha hemiclavicular — pois o ar se acumula em regiões superiores. Para líquidos e sangue: prioriza-se a porção inferior — 5º ou 6º espaço intercostal, na linha axilar média ou anterior — pois o fluido se acumula nas bases por gravidade. O sítio de eleição geral é o 5º EIC na linha axilar média/anterior."
+  },
+  {
+    question: "Paciente com hemotórax após trauma necessita de drenagem torácica. O dreno é conectado a um sistema que impede o refluxo de ar e líquido para dentro da cavidade pleural. Como se chama esse sistema?",
+    imageKey: null,
+    options: [
+      "Selo d'água: sistema de frasco com nível líquido que impede refluxo de ar e líquido",
+      "Porto-VAC: sanfona de pressão negativa que impede refluxo por pressão ativa fechada",
+      "Jackson-Pratt: bulbo de sucção que mantém pressão negativa e impede refluxo passivo",
+      "Hemovac: mola circular que mantém pressão negativa constante impedindo refluxo",
+      "Sistema de Penrose: capilaridade bidirecional que impede o fluxo reverso no dreno"
+    ],
+    correctIndex: 0,
+    explanation: "O selo d'água é um sistema de frasco no qual o dreno torácico mergulha alguns centímetros abaixo do nível líquido. Esse nível líquido cria uma barreira que impede o refluxo de ar e líquido para a cavidade pleural durante a inspiração (quando a pressão intrapleural cai). O sistema clássico usa três frascos: coleta, selo d'água e sucção."
+  },
+  {
+    question: "Cirurgião discute com residente a escolha entre dreno aberto e fechado para pós-operatório de laparotomia. Qual é a principal vantagem dos drenos fechados sobre os abertos?",
+    imageKey: null,
+    options: [
+      "Menor risco de contaminação retrógrada da ferida por isolarem o fluido do ambiente",
+      "Maior facilidade de inserção e fixação por serem mais maleáveis e flexíveis",
+      "Drenagem por capilaridade mais eficiente por apresentarem maior área de superfície",
+      "Menor custo e maior disponibilidade em qualquer serviço hospitalar público",
+      "Melhor visualização do aspecto do dreno drenado por serem transparentes e calibrosos"
+    ],
+    correctIndex: 0,
+    explanation: "Os drenos fechados (conectados a reservatórios/coletores, como Porto-VAC, Jackson-Pratt, Hemovac) são preferíveis aos abertos (ex.: Penrose) porque isolam o fluido drenado do ambiente externo, reduzindo significativamente o risco de contaminação retrógrada da ferida. Drenos abertos drenam para curativos e estão diretamente expostos ao ambiente, predispondo à infecção."
+  },
+  {
+    question: "Qual é a diferença fundamental entre drenos tubulares e drenos laminares quanto ao mecanismo de drenagem?",
+    imageKey: null,
+    options: [
+      "Tubulares drenam pela sua luz interna; laminares drenam por capilaridade na superfície externa",
+      "Tubulares drenam por capilaridade na superfície; laminares drenam pelo lúmen interno",
+      "Tubulares são passivos e drenam por gravidade; laminares são ativos e drenam por sucção",
+      "Tubulares são sempre fechados e laminares sempre abertos, independente do mecanismo",
+      "Tubulares são de látex e laminares de silicone, diferindo apenas no material constituinte"
+    ],
+    correctIndex: 0,
+    explanation: "Drenos tubulares: drenam pela sua luz interna; podem ser passivos (gravidade, capilaridade) ou acoplados a sistemas de sucção. Drenos laminares: o fluido corre na superfície externa do dreno (não pelo lúmen), aproveitando a capilaridade — como o Penrose. Ambos os tipos podem ser de látex ou silicone e podem ser usados em sistemas ativos ou passivos, dependendo do modelo."
+  },
+  {
+    question: "Paciente pós-gastrectomia parcial precisa de descompressão gástrica. A enfermeira pergunta ao cirurgião sobre a sonda nasogástrica disponível no estoque: a Sonda de Levin. Qual é sua característica?",
+    imageKey: null,
+    options: [
+      "Sonda de Levin: uma única luz de plástico ou borracha com aberturas próximas à ponta",
+      "Sonda de Levin: duas luzes radiopacas para aspiração e ventilação simultâneas do estômago",
+      "Sonda de Levin: três luzes com dois balões, indicada para controle de varizes esofagianas",
+      "Sonda de Levin: ponta pesada e flexível para progressão espontânea ao intestino delgado",
+      "Sonda de Levin: dois balões gástrico e esofagiano para tamponamento de varizes sangrantes"
+    ],
+    correctIndex: 0,
+    explanation: "A Sonda de Levin é uma sonda nasogástrica de uma única luz, feita de plástico ou borracha, com aberturas localizadas próximas à ponta. Marcas circulares indicam a profundidade de inserção. É usada para descompressão gástrica e drenagem de conteúdo. A Sonda de Salem (ou sonda gástrica simples) é a versão de duas luzes: uma para aspiração e outra (ventilação) para evitar colabamento."
+  },
+  {
+    question: "Paciente com cirrose e hemorragia digestiva alta por rotura de varizes esofagianas sem resposta ao tratamento endoscópico. O plantonista indica sonda específica com três luzes e dois balões. Qual é essa sonda?",
+    imageKey: null,
+    options: [
+      "Sonda de Sengstaken-Blakemore: 3 luzes e 2 balões para tamponamento de varizes esofagianas",
+      "Sonda de Miller-Abbott: 2 luzes e 3 metros de comprimento para descompressão intestinal",
+      "Sonda de Salem: 2 luzes com duplo lúmen para aspiração gástrica e ventilação simultânea",
+      "Sonda de Levin: 1 luz de plástico com aberturas distais para drenagem gástrica simples",
+      "Sonda de Dobhoff: ponta pesada e flexível para nutrição enteral no intestino delgado"
+    ],
+    correctIndex: 0,
+    explanation: "A Sonda de Sengstaken-Blakemore possui 3 luzes e 2 balões: uma luz para insuflar o balão gástrico (ancora a sonda no estômago e comprime as varizes gástricas), outra para insuflar o balão esofágico (comprime varizes esofagianas) e a terceira para lavagem/drenagem gástrica. É usada no controle emergencial de sangramentos por varizes esôfago-gástricas refratárias."
+  },
+  {
+    question: "Médico prescreve sondagem vesical para monitorização de diurese em pós-operatório de cirurgia pélvica. A enfermeira questiona qual calibre usar. Como as sondas vesicais tipo Foley são identificadas?",
+    imageKey: null,
+    options: [
+      "Pelo diâmetro externo em French: Foley 16, Foley 18, Foley 20 — número maior = mais calibroso",
+      "Pelo comprimento em centímetros: Foley 40 cm, Foley 50 cm, conforme o tamanho do paciente",
+      "Pelo volume do balão de fixação em mL: Foley 5 mL, Foley 10 mL, Foley 30 mL",
+      "Pela quantidade de luzes: Foley simples (1 luz), dupla (2 luzes) e tripla (3 luzes)",
+      "Pelo material: Foley látex, Foley silicone, Foley PVC — sem correlação com calibre"
+    ],
+    correctIndex: 0,
+    explanation: "As sondas vesicais tipo Foley têm duplo lúmen (uma para drenagem e outra para inflar o balão de fixação) e são identificadas pelo seu diâmetro externo em French (Fr): Foley 16, 18, 20. Número mais alto = maior diâmetro. A sondagem vesical pode ser realizada pela uretra (atraumática) ou por punção suprapúbica (cistostomia), indicada quando a via transuretral está contraindicada."
+  },
+  {
+    question: "Paciente em UTI com disfagia grave por AVC necessita de nutrição enteral prolongada. A equipe opta por sonda nasojejunal. Qual sonda é especificamente projetada para nutrição enteral, com ponta pesada que facilita a progressão espontânea?",
+    imageKey: null,
+    options: [
+      "Sonda de Dobhoff: ponta pesada e flexível que favorece progressão ao intestino delgado",
+      "Sonda de Miller-Abbott: duas luzes e 3 metros de comprimento para descompressão intestinal",
+      "Sonda de Levin: luz única de plástico com aberturas distais para drenagem gástrica simples",
+      "Sonda de Sengstaken-Blakemore: três luzes e dois balões para controle de varizes esofagianas",
+      "Sonda de Salem: duas luzes radiopacas para aspiração e ventilação gástrica simultâneas"
+    ],
+    correctIndex: 0,
+    explanation: "A Sonda de Dobhoff é uma sonda nasojejunal utilizada para nutrição enteral de longa duração. Sua principal característica é a ponta pesada e flexível, que favorece a progressão espontânea pelo peristaltismo até o duodeno/jejuno proximal. É inserida pela narina e usada quando o estômago não pode ser utilizado (gastroparesia, risco de broncoaspiração) ou quando é necessária nutrição pós-pilórica."
+  },
+  {
+    question: "Residente pergunta sobre a diferença entre sondas e cateteres. Qual é a distinção clássica entre esses dois dispositivos?",
+    imageKey: null,
+    options: [
+      "Sondas são introduzidas em cavidades naturais; cateteres são introduzidos por punção em vasos",
+      "Sondas são de látex e cateteres de silicone, diferindo apenas no material utilizado",
+      "Sondas são sempre mais calibrosas e cateteres mais finos, independente da via de acesso",
+      "Sondas têm função exclusiva de drenagem; cateteres têm função exclusiva de infusão",
+      "Sondas são temporárias e cateteres são dispositivos permanentes implantados cirurgicamente"
+    ],
+    correctIndex: 0,
+    explanation: "Por definição clássica: sondas são tubos flexíveis introduzidos em cavidades naturais do organismo (ex.: sonda nasogástrica, sonda vesical, sonda retal); cateteres são tubos geralmente mais finos introduzidos em vasos ou cavidades por punção (ex.: cateter venoso central, cateter de Swan-Ganz). Ambos podem realizar drenagem, descompressão, nutrição, infusão de medicamentos e monitorização."
+  },
+  {
+    question: "Cirurgião analisa os materiais disponíveis para drenos e discute com residente: 'Este material é macio, maleável e barato, mas tem maior risco de colonização bacteriana e formação de tampões de fibrina.' De qual material está falando?",
+    imageKey: null,
+    options: [
+      "Látex (borracha): macio, maleável e barato, mas sujeito à colonização e tampões de fibrina",
+      "Silicone: mais rígido, porém mais inerte quimicamente e com menor propensão à colonização",
+      "Polietileno: plástico mais rígido, pouco irritante e de baixa incidência de contaminação",
+      "Teflon/Vialon: usados em cateteres venosos, muito pouco antigênicos e com menos tromboflebite",
+      "PVC (cloreto de polivinila): flexível em temperatura corporal, atóxico e de fácil introdução"
+    ],
+    correctIndex: 0,
+    explanation: "Látex (borracha): macio, maleável e de menor custo — mas sua superfície irregular é mais propensa à colonização bacteriana e à formação de tampões de fibrina, que podem obstruir o dreno. Silicone: um pouco mais rígido, porém mais inerte. Polietileno: rígido, pouco irritante. Teflon/Vialon: usados em cateteres venosos por serem muito pouco antigênicos (menor tromboflebite)."
+  },
+  {
+    question: "Apresentação de caso em aula: 'Drenos têm três finalidades principais no contexto cirúrgico e pós-operatório.' Quais são essas finalidades?",
+    imageKey: null,
+    options: [
+      "Profilática (prevenir coleções), terapêutica (tratar infecção/coleção) e diagnóstica (identificar vazamentos)",
+      "Profilática (prevenir infecção), nutricional (suporte enteral) e monitorização (débito hídrico)",
+      "Terapêutica (tratar hematoma), monitorização (débito urinário) e diagnóstica (culturas)",
+      "Descompressiva (reduzir pressão), nutricional (infundir dieta) e terapêutica (antibióticos)",
+      "Profilática (prevenir deiscência), terapêutica (tratar fístula) e nutricional (dieta enteral)"
+    ],
+    correctIndex: 0,
+    explanation: "Os drenos têm três finalidades: (1) Profilática: prevenir o acúmulo de líquidos que favorecem infecção, deiscência ou distúrbio hemodinâmico; (2) Terapêutica: tratar coleções já formadas (pus, bile, hematoma); (3) Diagnóstica: identificar complicações como sangramento ativo (hemácias no dreno), fístulas anastomóticas (extravasamento de conteúdo intestinal) ou vazamentos biliares."
+  },
+  {
+    question: "Plantonista realiza drenagem torácica por hemotórax espontâneo. Qual é o sítio de eleição para a inserção do dreno torácico nesse caso?",
+    imageKey: null,
+    options: [
+      "5º espaço intercostal na linha axilar média ou anterior, acima da costela inferior",
+      "2º espaço intercostal na linha hemiclavicular, acima da costela inferior do espaço",
+      "7º espaço intercostal na linha axilar posterior, para drenagem de líquido em base",
+      "3º espaço intercostal na linha paraesternal, para drenagem de derrame unilateral",
+      "4º espaço intercostal na linha axilar anterior, para drenagem de pequenos hematomas"
+    ],
+    correctIndex: 0,
+    explanation: "O sítio de eleição para drenagem torácica é o 5º espaço intercostal na linha axilar média ou anterior. A inserção é feita acima da costela inferior do espaço escolhido para evitar o feixe vasculonervoso (que corre no bordo inferior da costela superior). Para pneumotórax: preferencialmente 2-3º EIC, linha hemiclavicular. Para hemotórax/derrame: 5-6º EIC, linha axilar média/anterior."
+  },
+  {
+    question: "Paciente com obstrução intestinal baixa mecânica necessita de descompressão do delgado. Residente menciona sonda de duas luzes com 3 metros de comprimento que avança pelo peristaltismo. Qual é essa sonda?",
+    imageKey: null,
+    options: [
+      "Sonda de Miller-Abbott: 2 luzes e 3 metros de comprimento para descompressão do delgado",
+      "Sonda de Dobhoff: ponta pesada e flexível indicada para nutrição enteral nasojejunal",
+      "Sonda de Levin: luz única com aberturas distais para descompressão gástrica simples",
+      "Sonda de Sengstaken-Blakemore: 3 luzes e 2 balões para controle de varizes esofagianas",
+      "Sonda de Salem: 2 luzes radiopacas com duplo lúmen para aspiração e ventilação gástrica"
+    ],
+    correctIndex: 0,
+    explanation: "A Sonda de Miller-Abbott é uma sonda intestinal longa (3 metros) com duas luzes: uma para introdução de mercúrio ou ar no balão distal (que auxilia a progressão pelo peristaltismo) e outra para aspiração do conteúdo intestinal. É usada para descompressão do intestino delgado em obstruções funcionais ou mecânicas selecionadas. Pouco utilizada atualmente devido ao advento de outros métodos."
+  },
+  {
+    question: "Paciente do sexo masculino com trauma uretral anterior não pode realizar sondagem vesical transuretral. O urologista indica acesso alternativo à bexiga para monitorização de diurese. Qual é o procedimento?",
+    imageKey: null,
+    options: [
+      "Cistostomia suprapúbica: punção ou acesso cirúrgico pela parede abdominal suprapúbica",
+      "Nefrostomia percutânea: punção guiada por imagem para drenagem direta da pelve renal",
+      "Ureterostomia cutânea: exteriorização do ureter pela parede abdominal lateral ou baixa",
+      "Cateterismo suprapúbico: sondagem do ureter por cateter introduzido via cistoscopia",
+      "Drenagem retroperitoneal: dreno de Penrose posicionado no espaço pré-vesical cirúrgico"
+    ],
+    correctIndex: 0,
+    explanation: "Quando a sondagem vesical transuretral é contraindicada (trauma uretral, estenose grave, prostatismo severo), a alternativa é a cistostomia (sondagem vesical cruenta): punção suprapúbica com cateter ou trocater, ou acesso cirúrgico direto à bexiga. A cistostomia permite drenagem vesical segura sem instrumentação uretral."
+  },
+  {
+    question: "Durante a técnica de inserção do dreno torácico, o cirurgião faz incisão de 2-3 cm e dissecção romba dos tecidos com pinça. Em qual estrutura ele perfura para entrar na cavidade pleural, e qual cuidado deve ter com o feixe vasculonervoso?",
+    imageKey: null,
+    options: [
+      "Perfura a pleura parietal acima da costela inferior do espaço para evitar o feixe vasculonervoso",
+      "Perfura a pleura visceral abaixo da costela superior do espaço, onde o feixe é protegido",
+      "Perfura o espaço intercostal no centro do espaço, equidistante das costelas adjacentes",
+      "Perfura o músculo intercostal abaixo da costela inferior para acessar o espaço pleural",
+      "Perfura o pericárdio parietal acima da costela inferior para drenar derrames cardíacos"
+    ],
+    correctIndex: 0,
+    explanation: "Na técnica de drenagem torácica: incisão 2-3 cm → dissecção romba com pinça Kelly/Halsted dos músculos (serrátil anterior e intercostais) ACIMA da costela inferior do espaço intercostal escolhido — pois o feixe vasculonervoso (artéria, veia e nervo intercostal) corre no sulco na face inferior da costela superior. Ao perfurar a pleura parietal com a pinça fechada, confirmar posição pela abertura da pinça e inserir o dreno suavemente."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+  current = 0; score = 0;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progressText').textContent = `Questão ${current + 1} de ${total}`;
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+  document.getElementById('qNum').textContent = `Questão ${current + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+  const imgContainer = document.getElementById('questionImg');
+  if (q.imageKey && imagens[q.imageKey]) {
+    imgContainer.innerHTML = `<img src="${imagens[q.imageKey]}" class="question-img" alt="Imagem da questão">`;
+  } else { imgContainer.innerHTML = ''; }
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correctIndex) {
+    score++;
+    opts[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correto!</strong> ${q.explanation}`;
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correctIndex].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>✗ Incorreto.</strong> ${q.explanation}`;
+  }
+  fb.style.display = 'block';
+  const btnNext = document.getElementById('btnNext');
+  btnNext.style.display = 'inline-block';
+  btnNext.textContent = current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado';
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = questions.length - score;
+  document.getElementById('statTotal').textContent = questions.length;
+}
+
+function retryQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>
