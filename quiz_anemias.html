@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Anemias</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { max-width: 780px; width: 100%; }
+    .start-screen { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .start-header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 48px 32px; }
+    .start-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .start-header p { opacity: 0.85; font-size: 1rem; }
+    .start-body { padding: 40px 32px; }
+    .start-body p { color: #374151; font-size: 1rem; line-height: 1.6; margin-bottom: 8px; }
+    .badge-row { display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .badge { background: #f0fdf4; border: 2px solid #16a34a; color: #166534; border-radius: 999px; padding: 6px 20px; font-size: 0.875rem; font-weight: 600; }
+    .btn-start { background: linear-gradient(135deg, #064e3b 0%, #16a34a 100%); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); }
+    .quiz-screen { display: none; }
+    .progress-bar-wrap { background: #d1fae5; border-radius: 999px; height: 8px; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #064e3b, #16a34a); border-radius: 999px; height: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-bottom: 6px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 20px 24px; }
+    .card-header .q-num { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .card-body { padding: 28px 24px; }
+    .question-text { font-size: 1rem; color: #111827; line-height: 1.65; margin-bottom: 24px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-size: 0.92rem; color: #374151; line-height: 1.45; transition: all 0.15s; text-align: left; width: 100%; }
+    .opt:hover:not(.disabled) { border-color: #16a34a; background: #f0fdf4; }
+    .opt.correct { background: #f0fdf4; border-color: #16a34a; color: #14532d; }
+    .opt.wrong { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+    .opt.disabled { cursor: default; }
+    .feedback { margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; line-height: 1.55; display: none; }
+    .feedback.correct { background: #f0fdf4; border-left: 4px solid #16a34a; color: #14532d; }
+    .feedback.wrong { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+    .btn-next { display: none; margin-top: 20px; background: linear-gradient(135deg, #064e3b 0%, #16a34a 100%); color: white; border: none; border-radius: 10px; padding: 13px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; float: right; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,163,74,0.4); }
+    .clearfix { clear: both; }
+    .result-screen { display: none; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .result-header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 40px 32px; }
+    .result-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .score-big { font-size: 4rem; font-weight: 800; margin: 16px 0; }
+    .result-body { padding: 36px 32px; }
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px; padding: 20px 28px; min-width: 120px; }
+    .stat .val { font-size: 2rem; font-weight: 700; color: #16a34a; }
+    .stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .stat.wrong-stat .val { color: #dc2626; }
+    .stat.wrong-stat { border-color: #fecaca; background: #fef2f2; }
+    .btn-retry { background: linear-gradient(135deg, #064e3b 0%, #16a34a 100%); color: white; border: none; border-radius: 10px; padding: 14px 40px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); }
+    .question-img { max-width: 100%; border-radius: 6px; margin: 10px 0 16px 0; display: block; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-header">
+      <h1>Anemias</h1>
+      <p>Microcíticas · Macrocíticas · Hemolíticas</p>
+    </div>
+    <div class="start-body">
+      <p>Quiz de casos clínicos cobrindo diagnóstico diferencial, fisiopatologia e conduta das principais anemias.</p>
+      <div class="badge-row">
+        <span class="badge">20 questões</span>
+        <span class="badge">Casos clínicos</span>
+        <span class="badge">Clínica Médica</span>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Começar</button>
+    </div>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-label">
+      <span id="progressText">Questão 1 de 20</span>
+      <span id="scoreText">Acertos: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="q-num" id="qNum">Questão 1</div>
+      </div>
+      <div class="card-body">
+        <div id="questionImg"></div>
+        <p class="question-text" id="questionText"></p>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próxima questão →</button>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-header">
+      <h2>Quiz concluído!</h2>
+      <div class="score-big" id="scorePct">--%</div>
+    </div>
+    <div class="result-body">
+      <div class="stats">
+        <div class="stat"><div class="val" id="statCorrect">-</div><div class="lbl">Acertos</div></div>
+        <div class="stat wrong-stat"><div class="val" id="statWrong">-</div><div class="lbl">Erros</div></div>
+        <div class="stat"><div class="val" id="statTotal">-</div><div class="lbl">Total</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">Refazer quiz</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const imagens = {};
+
+const rawQuestions = [
+  {
+    question: "Mulher de 40 anos com anemia ferropriva grave (Hb 7,1 g/dL, VCM 60 fL) refere disfagia a sólidos há 3 meses. Endoscopia alta evidencia membrana mucosa esofágica. Qual é o diagnóstico?",
+    imageKey: null,
+    options: [
+      "Síndrome de Plummer-Vinson: membrana esofágica associada a anemia ferropriva grave",
+      "Esôfago de Barrett: metaplasia intestinal esofágica por refluxo gastroesofágico crônico",
+      "Esofagite eosinofílica: infiltrado eosinofílico com disfagia em paciente com atopia",
+      "Acalasia idiopática: falha do EEI em relaxar e disfagia progressiva a sólidos e líquidos",
+      "Carcinoma esofágico escamocelular: estenose luminal com disfagia e emagrecimento progressivo"
+    ],
+    correctIndex: 0,
+    explanation: "A Síndrome de Plummer-Vinson (ou Patterson-Brown-Kelly) é a tríade de anemia ferropriva grave + disfagia + membrana esofágica (web). Ocorre predominantemente em mulheres de meia-idade. Predispõe ao carcinoma esofágico escamocelular — vigilância endoscópica é importante após o diagnóstico."
+  },
+  {
+    question: "Mulher de 28 anos com fadiga e palidez tem Hb 8,5 g/dL e VCM 63 fL. Qual perfil laboratorial é mais consistente com anemia ferropriva?",
+    imageKey: null,
+    options: [
+      "Ferro sérico ↓, ferritina ↓ (<12 ng/mL), CTLF ↑ e saturação de transferrina <15%",
+      "Ferro sérico ↓, ferritina ↑ (normal/alta), CTLF ↓ e saturação de transferrina normal",
+      "Ferro sérico normal, ferritina normal, CTLF normal e reticulócitos muito aumentados",
+      "Ferro sérico ↑, ferritina ↑, CTLF ↓ e bilirrubina indireta elevada por hemólise",
+      "Ferro sérico ↓, ferritina normal, CTLF normal e ácido metilmalônico levemente elevado"
+    ],
+    correctIndex: 0,
+    explanation: "Na ferropriva: ferritina < 12 ng/mL (primeiro marcador a cair), ferro sérico baixo, saturação de transferrina < 15% e CTLF (capacidade total de ligação do ferro) elevada — a transferrina aumenta para captar mais ferro. Ferritina alta + CTLF baixa sugere anemia de doença crônica, não ferropriva."
+  },
+  {
+    question: "Homem de 55 anos com artrite reumatoide tem Hb 9,5 g/dL, VCM 80 fL, ferro sérico baixo, ferritina 95 ng/mL e CTLF diminuída. Reposição de ferro oral por 3 meses não corrigiu a anemia. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Anemia de doença crônica (ADC): ferritina normal ou elevada e CTLF baixa por hepcidina alta",
+      "Anemia ferropriva clássica: ferritina baixa (<12 ng/mL) e CTLF elevada por depleção de ferro",
+      "Anemia megaloblástica: VCM > 100 fL, hipersegmentação neutrofílica e reticulócitos baixos",
+      "Talassemia beta menor: HbA2 > 3,5% na eletroforese, VCM muito baixo e eritrocitose relativa",
+      "Anemia hemolítica autoimune: teste de Coombs positivo e bilirrubina indireta elevada"
+    ],
+    correctIndex: 0,
+    explanation: "A ADC (anemia de doença crônica) ocorre em doenças inflamatórias, infecciosas e neoplásicas. Padrão: ferro sérico baixo, CTLF diminuída e ferritina normal ou elevada — ao contrário da ferropriva, onde ferritina é baixa e CTLF é alta. A hepcidina retém o ferro nos macrófagos, tornando-o indisponível para eritropoese."
+  },
+  {
+    question: "Paciente com doença de Crohn e anemia sem resposta ao ferro oral tem ferritina 110 ng/mL, ferro sérico baixo e CTLF diminuída. Qual mediador é o principal responsável pelo sequestro de ferro nessa anemia?",
+    imageKey: null,
+    options: [
+      "Hepcidina: bloqueia a ferroportina, retendo ferro nos macrófagos e nos enterócitos",
+      "Eritropoietina: suprime a produção de eritrócitos pela medula óssea inflamada cronicamente",
+      "Interleucina-10: aumenta a liberação de ferro dos macrófagos para a circulação periférica",
+      "Transferrina: diminui o transporte de ferro por redução da síntese hepática de fase aguda",
+      "Vitamina C: inibe a absorção duodenal do ferro não heme em estados inflamatórios ativos"
+    ],
+    correctIndex: 0,
+    explanation: "A hepcidina (peptídeo hepático) é o principal regulador do metabolismo do ferro. Em inflamação crônica, a IL-6 eleva a hepcidina, que se liga e degrada a ferroportina nos macrófagos, hepatócitos e enterócitos — retendo ferro nesses compartimentos e reduzindo a disponibilidade para eritropoese."
+  },
+  {
+    question: "Paciente com artrite reumatoide e ADC (Hb 8,8 g/dL) permanece sintomático apesar de controle parcial da doença de base. Qual é a abordagem terapêutica correta para a anemia?",
+    imageKey: null,
+    options: [
+      "Eritropoietina exógena quando sintomática e refratária ao controle da doença de base",
+      "Ferro oral em dose plena, pois o ferro sérico está baixo mesmo com ferritina normal",
+      "Ferro IV de forma empírica, pois supera a barreira da hepcidina nos macrófagos esplênicos",
+      "Vitamina B12 IM semanal para corrigir a deficiência funcional de cobalamina associada",
+      "Transfusão de concentrado de hemácias como primeira linha em toda ADC sintomática"
+    ],
+    correctIndex: 0,
+    explanation: "Na ADC, o tratamento primário é o controle da doença de base. A reposição de ferro está contraindicada mesmo com ferro sérico baixo, pois os estoques são normais e o ferro extra alimenta inflamação. A EPO é indicada quando a anemia é sintomática e a doença de base não é controlável de forma eficaz."
+  },
+  {
+    question: "Jovem de 25 anos assintomático tem Hb 11,5 g/dL, VCM 63 fL e eritrócitos 6,4 × 10⁶/µL. Ferritina normal, sem resposta ao ferro por 2 meses. Eletroforese mostra HbA2 5,8%. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Talassemia beta menor: HbA2 > 3,5% na eletroforese com eritrocitose relativa e VCM muito baixo",
+      "Anemia ferropriva: ferritina baixa, CTLF elevada e resposta esperada à reposição de ferro oral",
+      "Anemia de doença crônica: ferritina elevada, CTLF diminuída por hepcidina cronicamente alta",
+      "Talassemia alfa traço: eletroforese normal e diagnóstico feito por análise do DNA gênico alfa",
+      "Anemia megaloblástica: VCM > 100 fL, DHL elevado e neutrófilos hipersegmentados no esfregaço"
+    ],
+    correctIndex: 0,
+    explanation: "O traço beta-talassêmico (talassemia beta menor) geralmente é assintomático. Padrão: anemia leve (Hb 10-12 g/dL), VCM e HCM muito baixos, mas eritrócitos paradoxalmente elevados (> 5,5 × 10⁶/µL). O diagnóstico é confirmado pela eletroforese de Hb com HbA2 > 3,5%. Não requer tratamento específico."
+  },
+  {
+    question: "Vegetariano estrito de 68 anos com fadiga, palidez e icterícia leve. Hb 7,8 g/dL, VCM 118 fL, leucopenia e plaquetopenia leves. Esfregaço com neutrófilos de 6+ segmentos. Qual é o mecanismo da macrocitose?",
+    imageKey: null,
+    options: [
+      "Síntese defeituosa de DNA com assincronia entre maturação nuclear (lenta) e citoplasmática (normal)",
+      "Síntese defeituosa de hemoglobina com acúmulo de protoporfirina livre e microcitose paradoxal",
+      "Hepcidina elevada com sequestro de ferro nos macrófagos e eritropoese ineficaz secundária",
+      "Anticorpos anti-eritrocitários com destruição periférica das hemácias e reticulocitose intensa",
+      "Déficit de cadeias beta de globina com precipitação das cadeias alfa e eritropoese ineficaz"
+    ],
+    correctIndex: 0,
+    explanation: "Nas anemias megaloblásticas (déficit de B12 ou folato), a síntese de DNA é defeituosa: os precursores não completam a divisão celular, mas o citoplasma continua crescendo. Essa assincronia gera células grandes (megaloblastos) e eritropoese ineficaz com hemólise intramedular — DHL e bilirrubina indireta elevados."
+  },
+  {
+    question: "Mulher de 65 anos com parestesias em luva e meia, ataxia e anemia macrocítica (VCM 112 fL, B12 = 48 pg/mL). Por que as manifestações neurológicas ocorrem na deficiência de B12, mas não na deficiência de folato?",
+    imageKey: null,
+    options: [
+      "B12 é cofator único da conversão de metilmalonil-CoA a succinil-CoA, essencial para a mielina",
+      "B12 é necessária para a síntese de mielina a partir do ácido fólico presente nos vegetais",
+      "B12 atua no ciclo da ureia, prevenindo o acúmulo de amônia neurotóxica nos axônios mielinizados",
+      "B12 controla a absorção intestinal de zinco, mineral essencial para a condução nervosa axonal",
+      "B12 sintetiza a timina diretamente no axônio, mantendo a integridade do DNA neuronal local"
+    ],
+    correctIndex: 0,
+    explanation: "A B12 é cofator de duas reações: metionina sintase (ciclo do folato, compartilhada) e metilmalonil-CoA mutase (converte metilmalonil-CoA a succinil-CoA — exclusiva da B12). O acúmulo de metilmalonil-CoA é neurotóxico, causando degeneração subaguda combinada da medula. O ácido metilmalônico sérico é o marcador específico de deficiência de B12."
+  },
+  {
+    question: "Paciente de 58 anos com anemia macrocítica tem homocisteína sérica elevada, mas ácido metilmalônico (AMM) normal. Qual é o diagnóstico mais provável?",
+    imageKey: null,
+    options: [
+      "Deficiência de folato: AMM normal pois a reação da metilmalonil-CoA mutase não é afetada pelo folato",
+      "Deficiência de vitamina B12: o AMM é sempre normal na deficiência de cobalamina isolada",
+      "Anemia perniciosa: anticorpos anti-fator intrínseco positivos com AMM normal em fase inicial",
+      "Talassemia beta menor: HbA2 > 3,5% com macrocitose e AMM normal sem relação com vitaminas",
+      "Hipotireoidismo: TSH elevado com macrocitose e AMM normal por causa endocrinológica pura"
+    ],
+    correctIndex: 0,
+    explanation: "A homocisteína eleva-se tanto na deficiência de B12 quanto na de folato (ambas afetam a metionina sintase). O ácido metilmalônico só se eleva na deficiência de B12 (cofator exclusivo da metilmalonil-CoA mutase). AMM normal com homocisteína elevada = deficiência de folato. AMM elevado + homocisteína elevada = deficiência de B12."
+  },
+  {
+    question: "Mulher de 72 anos com anemia macrocítica, glossite, dispepsia e icterícia leve. Lab: anticorpos anti-fator intrínseco positivos, anti-células parietais positivos, acloridria e gastrina sérica elevada. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Anemia perniciosa: gastrite atrófica autoimune com deficiência de fator intrínseco",
+      "Anemia ferropriva por sangramento oculto gástrico com ferritina muito reduzida",
+      "Síndrome da alça cega com supercrescimento bacteriano e consumo luminal de vitamina B12",
+      "Doença celíaca com má absorção jejunal de vitamina B12 e folato e gastrina normal",
+      "Gastrectomia parcial com redução da secreção de fator intrínseco e depleção de B12"
+    ],
+    correctIndex: 0,
+    explanation: "A anemia perniciosa é doença autoimune em que anticorpos contra células parietais (90%) e fator intrínseco (70%) levam à gastrite atrófica, acloridria, hipergastrinemia e déficit de FI. Sem fator intrínseco, a B12 não pode ser absorvida no íleo. É a principal causa de deficiência de B12 em idosos e predispõe ao adenocarcinoma gástrico."
+  },
+  {
+    question: "Paciente com anemia perniciosa confirmada tem vitamina B12 de 52 pg/mL. Qual é o tratamento de escolha e o esquema de manutenção?",
+    imageKey: null,
+    options: [
+      "Cobalamina IM 1000 µg/dia por 7 dias, semanal por 2 meses e depois mensal de forma vitalícia",
+      "Ácido fólico VO 5 mg/dia por 1-4 meses até normalização do hemograma e da B12 sérica",
+      "Ferro IV em infusão única e depois reposição oral mensal para manter ferritina acima de 30",
+      "Vitamina C 500 mg/dia VO para facilitar a absorção intestinal da cobalamina no duodeno",
+      "Eritropoietina SC 3×/semana até reticulocitose adequada e hemoglobina acima de 10 g/dL"
+    ],
+    correctIndex: 0,
+    explanation: "Como a maioria dos pacientes com perniciosa tem má absorção de B12 (falta de fator intrínseco), a reposição deve ser parenteral (IM): 100-1000 µg/dia por 7 dias → mesma dose semanal por 1-2 meses → manutenção mensal indefinida. A reposição oral em altas doses (1000 µg/dia) pode ser usada em casos selecionados por absorção passiva."
+  },
+  {
+    question: "Etilista de 32 anos tem anemia macrocítica com folato sérico < 2 ng/mL e B12 normal. Por que os estoques de folato se esgotam muito mais rapidamente que os de vitamina B12?",
+    imageKey: null,
+    options: [
+      "Estoques hepáticos de folato duram 3-4 meses, enquanto os de B12 duram 2-5 anos",
+      "Folato tem absorção dependente de fator intrínseco, enquanto B12 é absorvida livremente",
+      "Folato é destruído pelo calor culinário, ao passo que B12 é estável em qualquer temperatura",
+      "Folato compete com metformina, sendo eliminado mais rapidamente em pacientes etilistas",
+      "Folato sofre circulação entero-hepática intensa, reduzindo seu depósito no organismo"
+    ],
+    correctIndex: 0,
+    explanation: "Os estoques hepáticos de folato são pequenos e duram apenas 3-4 meses. Já os estoques de B12 no fígado são de 2000-4000 µg e duram 2-5 anos. Por isso, a deficiência de folato se manifesta clinicamente muito antes da deficiência de B12. No etilismo, má nutrição + interferência do álcool no metabolismo do folato aceleram o esgotamento."
+  },
+  {
+    question: "Paciente com deficiência de ácido fólico (folato < 2 ng/mL, B12 normal, AMM normal). Qual é o tratamento correto e qual precaução deve ser tomada antes de prescrevê-lo?",
+    imageKey: null,
+    options: [
+      "Folato 1-5 mg/dia VO por 1-4 meses, após excluir deficiência concomitante de vitamina B12",
+      "Folato 1-5 mg/dia VO sem necessidade de excluir B12, pois o AMM normal já descarta B12",
+      "Cobalamina IM 1000 µg/dia, pois a reposição de folato isolado pode mascarar déficit de B12",
+      "Ferro oral 200 mg/dia, pois a causa da macrocitose em etilistas é sempre ferropriva associada",
+      "Folato IV 5 mg/dia por 7 dias, pois a absorção oral está sempre comprometida no etilismo"
+    ],
+    correctIndex: 0,
+    explanation: "A reposição de folato corrige a anemia megaloblástica, mas NÃO corrige as manifestações neurológicas da deficiência de B12. Se o paciente tiver déficit concomitante de B12 não diagnosticado e receber apenas folato, a anemia melhora, mas o quadro neurológico progride — às vezes irreversivelmente. É obrigatório excluir deficiência de B12 antes de repor folato isoladamente."
+  },
+  {
+    question: "Paciente com anemia perniciosa inicia reposição parenteral de vitamina B12. Em quantos dias ocorre o pico reticulocitário esperado como marcador de resposta ao tratamento?",
+    imageKey: null,
+    options: [
+      "5 a 8 dias após o início do tratamento parenteral com cobalamina",
+      "1 a 2 dias após a normalização do DHL e da bilirrubina indireta sérica",
+      "10 a 14 dias, coincidindo com o desaparecimento da hipersegmentação neutrofílica",
+      "1 a 2 meses, quando a hemoglobina se normaliza por completo com a reposição vitalícia",
+      "3 a 6 meses, após o início da melhora das manifestações neurológicas periféricas"
+    ],
+    correctIndex: 0,
+    explanation: "Após reposição de B12: normalização de DHL e bilirrubinas em 2 dias → pico reticulocitário em 5-8 dias → normalização da homocisteína em 5-10 dias → desaparecimento da hipersegmentação neutrofílica em 10-14 dias → regressão completa da anemia em 1-2 meses → melhora neurológica começa em 3 meses, com resposta máxima em 6-12 meses."
+  },
+  {
+    question: "Homem de 40 anos com icterícia de início súbito, urina escura e palidez. Hb 7,2 g/dL, reticulócitos 11%, bilirrubina indireta 4,2 mg/dL, DHL 1950 U/L e haptoglobina indetectável. Qual padrão é mais consistente?",
+    imageKey: null,
+    options: [
+      "Anemia hemolítica: reticulocitose compensatória com marcadores de hemólise positivos",
+      "Anemia megaloblástica: eritropoese ineficaz com reticulócitos reduzidos e DHL elevado",
+      "Anemia ferropriva por sangramento agudo com ferritina baixa e reticulócitos em elevação",
+      "Anemia aplástica: pancitopenia com medula hipocelular e ausência de reticulocitose",
+      "Anemia de doença crônica: hepcidina elevada com reticulócitos normais e DHL estável"
+    ],
+    correctIndex: 0,
+    explanation: "O perfil hemolítico clássico: reticulocitose (> 3% — resposta medular à destruição periférica), bilirrubina indireta elevada (catabolismo do heme), DHL elevado (liberado pelas hemácias destruídas) e haptoglobina baixa ou indetectável (consumida ao ligar-se à hemoglobina livre). A causa pode ser autoimune (Coombs+), genética (esferocitose, G6PD) ou mecânica (esquizócitos)."
+  },
+  {
+    question: "Mulher de 35 anos com anemia hemolítica, Coombs direto fortemente positivo (IgG) e esplenomegalia. A hemólise piora em temperatura corporal (37°C). Diagnóstico e tratamento de primeira linha?",
+    imageKey: null,
+    options: [
+      "AHAI quente (IgG): prednisona 1 mg/kg/dia por 4-8 semanas como tratamento inicial",
+      "AHAI fria (IgM): aquecimento do paciente e evitar exposição ao frio como tratamento inicial",
+      "Hemoglobinúria paroxística noturna: eculizumabe para inibir o complemento como tratamento",
+      "Esferocitose hereditária: esplenectomia eletiva após os 5 anos de idade como tratamento",
+      "Anemia falciforme: hidroxiureia para aumentar a hemoglobina fetal (HbF) como tratamento"
+    ],
+    correctIndex: 0,
+    explanation: "A AHAI quente é causada por anticorpos IgG que se ligam às hemácias a 37°C, mediando hemólise extravascular pelo sistema reticuloendotelial. Coombs direto positivo. Tratamento de primeira linha: corticosteroides (prednisona 1 mg/kg/dia), que suprimem a produção de anticorpos e a fagocitose. Casos refratários recebem rituximabe ou esplenectomia."
+  },
+  {
+    question: "Jovem de 22 anos com episódios recorrentes de icterícia, esplenomegalia e história familiar positiva. Coombs direto negativo, esferócitos no esfregaço e fragilidade osmótica aumentada. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Esferocitose hereditária: defeito na espectrina ou anquirina com Coombs negativo e esferócitos",
+      "AHAI quente: anticorpos IgG anti-hemácias com Coombs positivo e esferócitos no esfregaço",
+      "Anemia falciforme: hemólise crônica com deformação falciforme sob baixa tensão de O₂",
+      "Deficiência de G6PD: hemólise episódica desencadeada por agentes oxidantes específicos",
+      "Talassemia maior: eritropoese ineficaz grave e hemólise extravascular desde a infância"
+    ],
+    correctIndex: 0,
+    explanation: "A esferocitose hereditária é a anemia hemolítica congênita mais comum em caucasianos. O defeito no citoesqueleto eritroide (espectrina, anquirina ou proteína 3) torna a hemácia esférica e frágil, destruída prematuramente no baço. Diagnóstico: Coombs negativo, esferócitos e fragilidade osmótica aumentada. Tratamento definitivo: esplenectomia."
+  },
+  {
+    question: "Homem de 23 anos com icterícia e urina escura 48h após iniciar primaquina para profilaxia de malária. Coombs direto negativo; esfregaço mostra 'bite cells' e corpos de Heinz. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Deficiência de G6PD: hemólise oxidativa precipitada por agente redox como a primaquina",
+      "AHAI por droga: anticorpos anti-hemácias induzidos pela primaquina com Coombs positivo",
+      "Esferocitose hereditária: crise hemolítica deflagrada por infecção intercorrente febril",
+      "Talassemia beta maior: hemólise por precipitação de cadeias alfa excedentes no eritrócito",
+      "Hemoglobinúria paroxística noturna: hemólise intravascular por déficit de CD55 e CD59"
+    ],
+    correctIndex: 0,
+    explanation: "A deficiência de G6PD é a eritroenzimopatia mais comum. A G6PD protege as hemácias do estresse oxidativo via glutationa reduzida. Na deficiência, agentes oxidantes (primaquina, dapsona, nitrofurantoína, fava) oxidam a hemoglobina, formando corpos de Heinz (Hb oxidada precipitada) e 'bite cells' (baço removendo os corpos). A hemólise é autolimitada e o Coombs é negativo."
+  },
+  {
+    question: "Mulher de 38 anos com anemia hemolítica, plaquetas 18.000/µL, febre, alteração neurológica e creatinina 2,8 mg/dL. Esfregaço com esquizócitos abundantes. Diagnóstico?",
+    imageKey: null,
+    options: [
+      "Púrpura trombocitopênica trombótica (PTT): hemólise microangiopática com esquizócitos",
+      "AHAI quente (IgG): hemólise por anticorpos com esferócitos e Coombs direto positivo",
+      "Esferocitose hereditária: hemólise crônica com esferócitos e fragilidade osmótica positiva",
+      "Deficiência de G6PD: hemólise episódica com corpos de Heinz após agente oxidante específico",
+      "Anemia falciforme: vaso-oclusão difusa com crise aplástica associada ao parvovírus B19"
+    ],
+    correctIndex: 0,
+    explanation: "A PTT é uma microangiopatia trombótica com pêntade clássica: anemia hemolítica microangiopática (Coombs negativo + esquizócitos) + trombocitopenia + febre + alterações neurológicas + insuficiência renal. Resulta de déficit de ADAMTS13 com acúmulo de multímeros grandes de FvW e microtrombos. Tratamento de emergência: plasmaférese com plasma fresco congelado."
+  },
+  {
+    question: "Paciente com Hb 7,5 g/dL apresenta reticulócitos de 9%. O que essa contagem indica sobre a etiologia e a resposta medular?",
+    imageKey: null,
+    options: [
+      "Anemia hiperproliferativa: medula ativa respondendo a hemólise ou sangramento agudo",
+      "Anemia hipoproliferativa: medula comprometida por deficiência nutricional ou aplasia",
+      "Anemia megaloblástica: eritropoese ineficaz com reticulocitose leve e VCM elevado",
+      "Anemia aplástica: reticulocitose paradoxal compensatória com medula hipocelular grave",
+      "Anemia de doença crônica: reticulocitose mediada por EPO em resposta à hepcidina alta"
+    ],
+    correctIndex: 0,
+    explanation: "Reticulócitos > 3%: anemia hiperproliferativa — medula saudável respondendo a perda ou destruição periférica (hemólise ou sangramento agudo). Reticulócitos < 2%: anemia hipoproliferativa — medula comprometida por déficit de nutrientes (ferro, B12, folato), infiltração, aplasia ou eritropoese ineficaz. Reticulócitos de 9% indicam resposta robusta: investigar hemólise ou sangramento."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+  current = 0; score = 0;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progressText').textContent = `Questão ${current + 1} de ${total}`;
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+  document.getElementById('qNum').textContent = `Questão ${current + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+  const imgContainer = document.getElementById('questionImg');
+  if (q.imageKey && imagens[q.imageKey]) {
+    imgContainer.innerHTML = `<img src="${imagens[q.imageKey]}" class="question-img" alt="Imagem da questão">`;
+  } else { imgContainer.innerHTML = ''; }
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correctIndex) {
+    score++;
+    opts[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correto!</strong> ${q.explanation}`;
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correctIndex].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>✗ Incorreto.</strong> ${q.explanation}`;
+  }
+  fb.style.display = 'block';
+  const btnNext = document.getElementById('btnNext');
+  btnNext.style.display = 'inline-block';
+  btnNext.textContent = current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado';
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = questions.length - score;
+  document.getElementById('statTotal').textContent = questions.length;
+}
+
+function retryQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>
