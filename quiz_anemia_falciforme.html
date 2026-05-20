@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Anemia Falciforme | SAIAVC2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a1a; min-height: 100vh; }
+header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 18px 30px; text-align: center; }
+header h1 { font-size: 20px; margin-bottom: 4px; font-weight: 700; }
+header p { font-size: 12px; opacity: 0.8; }
+.quiz-container { max-width: 820px; margin: 28px auto; padding: 0 16px 80px; }
+#startScreen { background: white; border-radius: 14px; padding: 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#startScreen h2 { font-size: 22px; color: #064e3b; margin-bottom: 12px; }
+#startScreen p { font-size: 14px; color: #555; margin-bottom: 8px; line-height: 1.7; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 18px 0 26px; }
+.tag { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+.btn-primary { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 13px 34px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary:hover { background: #15803d; }
+.progress-bar-bg { background: #dde3ea; border-radius: 8px; height: 8px; margin-bottom: 6px; }
+.progress-bar-fill { background: #16a34a; height: 8px; border-radius: 8px; transition: width 0.4s ease; }
+.progress-label { font-size: 12px; color: #666; margin-bottom: 18px; }
+.question-card { background: white; border-radius: 14px; padding: 28px 30px; box-shadow: 0 2px 14px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.question-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.question-number { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 1px; }
+.question-area { font-size: 11px; font-weight: 600; background: #d1fae5; color: #065f46; border-radius: 12px; padding: 2px 10px; }
+.question-text { font-family: Georgia, serif; font-size: 15px; line-height: 1.78; color: #1a1a1a; margin-bottom: 22px; }
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-btn { width: 100%; text-align: left; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 13px 16px; font-size: 13.5px; line-height: 1.5; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+.option-btn:hover:not(:disabled) { border-color: #6ee7b7; background: #f0fdf4; }
+.option-btn:disabled { cursor: default; }
+.option-letter { font-weight: 700; color: #16a34a; min-width: 22px; font-size: 13px; padding-top: 1px; }
+.option-btn.correct { border-color: #16a34a; background: #f0fdf4; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; }
+.option-btn.correct .option-letter { color: #16a34a; }
+.option-btn.wrong .option-letter { color: #dc2626; }
+.feedback-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 16px 0 8px; }
+.feedback-badge.correct-badge { background: #dcfce7; color: #15803d; }
+.feedback-badge.wrong-badge { background: #fee2e2; color: #b91c1c; }
+.explanation-box { background: #fefce8; border-left: 4px solid #eab308; border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 13px; line-height: 1.7; margin-top: 12px; color: #422006; }
+.explanation-box strong { display: block; margin-bottom: 4px; color: #713f12; }
+.btn-next { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
+.btn-next:hover { background: #15803d; }
+#resultScreen { background: white; border-radius: 14px; padding: 44px 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#resultScreen h2 { font-size: 24px; color: #064e3b; margin-bottom: 8px; }
+.score-circle { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #064e3b); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; }
+.score-pct { font-size: 28px; font-weight: 800; }
+.score-label { font-size: 11px; opacity: 0.85; }
+.result-stats { display: flex; gap: 16px; justify-content: center; margin: 20px 0; }
+.stat-box { background: #f8fafc; border-radius: 10px; padding: 14px 22px; }
+.stat-box .stat-val { font-size: 22px; font-weight: 800; }
+.stat-box .stat-desc { font-size: 12px; color: #64748b; }
+.stat-box.green .stat-val { color: #16a34a; }
+.stat-box.red .stat-val { color: #dc2626; }
+.hidden { display: none; }
+a.back-link { display: inline-block; margin-top: 20px; font-size: 13px; color: #16a34a; text-decoration: none; }
+a.back-link:hover { text-decoration: underline; }
+.back-home-fixed { position: fixed; top: 14px; left: 14px; z-index: 9999; background: rgba(255,255,255,0.96); color: #064e3b; border: 1px solid #cbd5e1; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.back-home-fixed:hover { background: #ffffff; color: #16a34a; }
+</style>
+</head>
+<body>
+<a class="back-home-fixed" href="index.html">← Voltar ao início</a>
+
+<header>
+  <h1>Anemia Falciforme — Casos Clínicos</h1>
+  <p>Clínica Médica · SAIAVC2 · 20 questões</p>
+</header>
+<div class="quiz-container">
+
+  <div id="startScreen">
+    <h2>Anemia Falciforme</h2>
+    <p>20 casos clínicos sobre fisiopatologia da HbS, tipos de crise, complicações crônicas, triagem neonatal e tratamento com hidroxiureia.</p>
+    <div class="tag-row">
+      <span class="tag">Crise vaso-oclusiva</span>
+      <span class="tag">Sequestro esplênico</span>
+      <span class="tag">Crise aplástica</span>
+      <span class="tag">Hidroxiureia</span>
+      <span class="tag">Eletroforese de Hb</span>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Começar</button>
+  </div>
+
+  <div id="quizScreen" class="hidden">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <div id="resultScreen" class="hidden">
+    <h2>Resultado Final</h2>
+    <div class="score-circle">
+      <span class="score-pct" id="scorePct"></span>
+      <span class="score-label">acertos</span>
+    </div>
+    <div class="result-stats">
+      <div class="stat-box green"><div class="stat-val" id="totalCorrect"></div><div class="stat-desc">Corretas</div></div>
+      <div class="stat-box red"><div class="stat-val" id="totalWrong"></div><div class="stat-desc">Erradas</div></div>
+      <div class="stat-box"><div class="stat-val">20</div><div class="stat-desc">Total</div></div>
+    </div>
+    <button class="btn-primary" onclick="restartQuiz()">Refazer</button>
+    <br><a class="back-link" href="index.html">← Voltar ao índice</a>
+  </div>
+
+</div>
+<script>
+const rawQuestions = [
+  {
+    question: "Criança de 8 meses, pais com traço falciforme (AS), apresenta edema doloroso simétrico nas mãos e pés, choro intenso e febre baixa. Hemograma: Hb 8 g/dL, reticulócitos 8%. Qual é o diagnóstico mais provável e o nome clínico desta manifestação?",
+    options: [
+      "Anemia falciforme com dactilite (síndrome mão-pé), primeira crise vaso-oclusiva típica de lactentes",
+      "Artrite séptica bilateral, por bacteremia estafilocócica em lactente com imunidade celular imatura",
+      "Anemia hemolítica autoimune com crises hemolíticas periféricas e esplenomegalia reativa dolorosa",
+      "Leucemia aguda linfoblástica com infiltração óssea e dor em pequenos ossos das extremidades",
+      "Osteomielite multifocal por Salmonella, complicação clássica da anemia falciforme em crianças"
+    ],
+    correctIndex: 0,
+    explanation: "A dactilite (síndrome mão-pé) é frequentemente a primeira manifestação clínica da anemia falciforme, ocorrendo tipicamente entre 6 meses e 2 anos de vida. É causada por infarto dos pequenos ossos dos metacarpos e metatarsos pela falcização na microcirculação. O edema simétrico e doloroso associado a Hb baixa e reticulocitose em filho de dois portadores AS (25% de chance de HbSS) é altamente sugestivo."
+  },
+  {
+    question: "Qual é a base molecular da anemia falciforme e por que a HbF (hemoglobina fetal) protege o recém-nascido durante os primeiros meses de vida?",
+    options: [
+      "Substituição de ácido glutâmico por valina no códon 6 da globina beta; HbF não copoimeriza com HbS",
+      "Deleção do gene da globina alfa; HbF substitui a globina alfa e impede a falcização nas primeiras semanas",
+      "Substituição de valina por lisina no códon 6 da globina beta; HbF tem maior afinidade pelo O2",
+      "Duplicação do gene da globina beta com síntese de HbS e HbF simultaneamente em proporções iguais",
+      "Mutação no promotor do gene da globina beta; HbF compensa a síntese reduzida de HbA nos primeiros meses"
+    ],
+    correctIndex: 0,
+    explanation: "A mutação pontual no códon 6 do gene da globina beta substitui ácido glutâmico (hidrofílico) por valina (hidrofóbico), originando a HbS. A HbF (α₂γ₂) não interage com a HbS na polimerização porque a cadeia gama não tem o sítio de interação hidrofóbico da valina. Ao nascimento, 60–80% da Hb é HbF; à medida que cai (até ~6 meses), a HbS predomina e as manifestações clínicas emergem."
+  },
+  {
+    question: "Adolescente de 15 anos com anemia falciforme chega ao pronto-socorro com dor intensa em bacia e membros inferiores há 12 horas. Afebril, saturação O2 97%, Hb 7,5 g/dL (basal 7 g/dL). Qual é a crise presente e o tratamento inicial correto?",
+    options: [
+      "Crise vaso-oclusiva; hidratação venosa, analgesia escalonada com opioide e AINEs intercalados",
+      "Crise aplástica; transfusão imediata de concentrado de hemácias para recuperar os níveis basais",
+      "Sequestro esplênico; transfusão de exsanguíneotransfusão para reduzir HbS abaixo de 30%",
+      "Síndrome torácica aguda; suporte ventilatório e broncodilatadores como medida inicial urgente",
+      "Crise hemolítica; corticoterapia com metilprednisolona para reduzir a destruição extravascular"
+    ],
+    correctIndex: 0,
+    explanation: "A crise vaso-oclusiva é a mais frequente na anemia falciforme. O manejo inclui hidratação venosa (para reduzir viscosidade e reverter falcização), analgesia escalonada (paracetamol + AINE + opioide conforme intensidade da dor) e busca de fatores precipitantes. A Hb está próxima do basal (7,5 vs 7 g/dL basal) sem sinais de hemólise aguda ou aplasia, confirmando crise vaso-oclusiva sem complicação transfusional imediata."
+  },
+  {
+    question: "Criança de 3 anos com anemia falciforme apresenta abdome agudo com esplenomegalia dolorosa de crescimento rápido, palidez intensa e Hb que caiu de 8 para 4 g/dL em 6 horas. Qual é o diagnóstico e a conduta imediata?",
+    options: [
+      "Sequestro esplênico agudo; transfusão de concentrado de hemácias como medida de urgência",
+      "Crise aplástica por parvovírus B19; suporte transfusional e isolamento para evitar contágio",
+      "Ruptura esplênica espontânea; laparotomia de emergência com esplenectomia total imediata",
+      "Infarto esplênico maciço; anticoagulação plena com heparina e monitorização intensiva",
+      "Hiperesplenismo por sequestro crônico; esplenectomia eletiva após estabilização clínica"
+    ],
+    correctIndex: 0,
+    explanation: "O sequestro esplênico agudo é uma emergência pediátrica da anemia falciforme caracterizada por queda abrupta da Hb (≥ 2 g/dL abaixo do basal) com aumento súbito do baço pelo acúmulo de sangue falcizado. Pode causar choque hipovolêmico rapidamente. A transfusão de concentrado de hemácias é a medida imediata de estabilização. Após recuperação, discute-se esplenectomia preventiva ou transfusão crônica para evitar recorrência."
+  },
+  {
+    question: "Paciente de 12 anos com anemia falciforme apresenta palidez intensa, prostração e Hb que caiu de 9 para 4,5 g/dL sem dor. Reticulócitos 0,3%, bilirrubina normal, DHL normal. Exame: ausência de esplenomegalia. Qual é o diagnóstico mais provável e o agente etiológico mais associado?",
+    options: [
+      "Crise aplástica por parvovírus B19, que infecta precursores eritroides e suprime transitoriamente a eritropoese",
+      "Sequestro esplênico, que causa queda de Hb por aprisionamento de hemácias na circulação esplênica",
+      "Crise hemolítica aguda por infecção bacteriana, com aumento do DHL e da bilirrubina indireta",
+      "Crise vaso-oclusiva medular, que infiltra a medula óssea e reduz a produção de eritrócitos por isquemia",
+      "Hiperhemólise transfusional tardia, com destruição das hemácias transfundidas e das próprias hemácias"
+    ],
+    correctIndex: 0,
+    explanation: "A crise aplástica é caracterizada por queda abrupta da Hb sem sinais de hemólise (bilirrubina e DHL normais) e reticulocitopenia (< 1%), pois a eritropoese está suprimida. O parvovírus B19 tem tropismo pelos precursores eritroides (proeritoblastos) e é o principal agente. A aplasia é transitória (7–10 dias), mas em pacientes com hemólise crônica a queda de Hb pode ser grave e exigir transfusão de suporte."
+  },
+  {
+    question: "Adulto de 25 anos com anemia falciforme apresenta dor torácica intensa, febre 38,5 °C, saturação O2 88%, radiografia com infiltrado pulmonar bilateral novo. Hb basal 8 g/dL, atual 6 g/dL. Qual é o diagnóstico e o tratamento inicial?",
+    options: [
+      "Síndrome torácica aguda; suporte de O2, antibioticoterapia, analgesia e exsanguíneotransfusão parcial",
+      "Pneumonia comunitária sem relação com a AF; antibioticoterapia oral e alta hospitalar com reavaliação",
+      "Embolia pulmonar por estase vascular crônica; anticoagulação plena com heparina não fracionada",
+      "Edema agudo de pulmão por sobrecarga transfusional; diuréticos e restrição hídrica imediatos",
+      "Crise vaso-oclusiva pulmonar; analgesia opioide e hidratação venosa sem necessidade de O2 suplementar"
+    ],
+    correctIndex: 0,
+    explanation: "A síndrome torácica aguda (STA) é definida por novo infiltrado pulmonar + sintomas respiratórios (dor, dispneia, tosse) em paciente com anemia falciforme. É a principal causa de óbito em adultos. O manejo inclui: O2 para manter SatO2 > 95%, antibioticoterapia de amplo espectro (pneumonia associada é frequente), analgesia (evitar opioide em excesso — hipoventilação agrava a STA), e exsanguíneotransfusão parcial para reduzir HbS rapidamente. A broncodilatação é adicionada se houver broncoespasmo."
+  },
+  {
+    question: "Criança de 5 anos com anemia falciforme apresenta hemiplegia direita de início súbito. Doppler transcraniano realizado aos 2 anos havia mostrado velocidade de fluxo elevada na artéria cerebral média esquerda (> 200 cm/s). Qual medida preventiva teria reduzido o risco de AVC nesta paciente?",
+    options: [
+      "Programa de transfusão crônica para manter HbS abaixo de 30%, reduzindo o risco de AVC isquêmico",
+      "Hidroxiureia desde o diagnóstico, pois reduz a viscosidade sanguínea e o risco de acidente vascular",
+      "Esplenectomia profilática antes dos 3 anos, que elimina a destruição esplênica e melhora a hemoglobina",
+      "Aspirina profilática em dose baixa, pois inibe a agregação plaquetária e o tromboembolismo cerebral",
+      "Ácido fólico em dose alta desde o nascimento, que reduz a homocisteína e o risco de AVC isquêmico"
+    ],
+    correctIndex: 0,
+    explanation: "O Doppler transcraniano (DTC) é um exame de rastreio para risco de AVC na anemia falciforme. Velocidade de fluxo ≥ 200 cm/s em artérias intracranianas indica alto risco de AVC isquêmico. O programa de transfusão crônica (exchange transfusion a cada 3–4 semanas para manter HbS < 30%) reduz o risco de AVC em cerca de 90% nesta população de alto risco. A hidroxiureia é uma alternativa, mas com menor eficácia preventiva que a transfusão crônica nesta indicação."
+  },
+  {
+    question: "Qual é o mecanismo de ação da hidroxiureia que a torna o principal medicamento preventivo de crises na anemia falciforme?",
+    options: [
+      "Aumenta a produção de HbF, que não copoimeriza com HbS e dilui a concentração intracelular de HbS",
+      "Bloqueia diretamente a polimerização da HbS por ligação covalente ao resíduo de valina no códon 6",
+      "Reduz a viscosidade plasmática por inibição da síntese de fibrinogênio no fígado de forma dose-dependente",
+      "Aumenta a expressão de aquaporinas eritrocitárias, reidratando as hemácias e prevenindo a falcização",
+      "Inibe a adesão de neutrófilos ao endotélio vascular por bloqueio do fator de ativação plaquetária"
+    ],
+    correctIndex: 0,
+    explanation: "A hidroxiureia é um inibidor da ribonucleotídeo redutase que, em eritroblastos, aumenta a síntese de HbF (reativa genes gamma fetais). A HbF não tem o sítio hidrofóbico da valina que medeia a interação entre moléculas de HbS na polimerização. Ao elevar a HbF de 2–5% para 15–25%, reduz a concentração intracelular de HbS, inibindo a polimerização. Também reduz leucócitos, plaquetas e a expressão de moléculas de adesão endotelial."
+  },
+  {
+    question: "Paciente com anemia falciforme e dor óssea crônica progressiva no quadril direito. RX mostra achatamento da cabeça femoral com imagem em 'casca de ovo'. Qual é o diagnóstico e o mecanismo fisiopatológico?",
+    options: [
+      "Necrose avascular da cabeça femoral por infarto ósseo repetido na microcirculação da epífise proximal",
+      "Osteomielite por Salmonella com destruição progressiva da cortical e colapso da cabeça femoral",
+      "Artrite séptica crônica por estafilococo com erosão articular e colapso do acetábulo progressivo",
+      "Doença de Legg-Calvé-Perthes secundária à anemia falciforme, com revascularização espontânea possível",
+      "Fratura de estresse por osteoporose secundária à anemia crônica e imobilismo funcional do membro"
+    ],
+    correctIndex: 0,
+    explanation: "A necrose avascular da cabeça femoral (e umeral) é uma complicação crônica grave da anemia falciforme. A microcirculação ossosa da epífise femoral é terminal (sem colaterais), tornando-a extremamente vulnerável à oclusão pela HbS polimerizada. O resultado é infarto ósseo repetido, colapso articular progressivo e dor crônica. O tratamento inicial é conservador (fisioterapia, analgesia), evoluindo para artroplastia total de quadril em casos avançados."
+  },
+  {
+    question: "Recém-nascido, triagem neonatal (teste do pezinho) com resultado: HbFS. O que significa este perfil e qual é a conduta imediata?",
+    options: [
+      "HbF predominante com HbS — compatível com anemia falciforme; confirmar e encaminhar para hematologia",
+      "HbF com traço S — portador (AS) sem doença; tranquilizar a família e dispensar acompanhamento",
+      "HbF com HbS e ausência de HbA — diagnóstico de doença falciforme descartado por presença de HbF",
+      "HbF com HbS em baixa proporção — compatível com talassemia beta com hemoglobina S associada",
+      "Perfil normal do recém-nascido; HbS é fisiológica no período neonatal e desaparece após 3 meses"
+    ],
+    correctIndex: 0,
+    explanation: "No teste do pezinho, o perfil HbFS (HbF predominante com HbS, sem HbA) é compatível com anemia falciforme (HbSS) ou com outras hemoglobinopatias SS. A ausência de HbA é o achado crítico. A conduta é confirmar com eletroforese de hemoglobina entre 2 e 3 meses de vida (quando a HbF cai) e encaminhar ao hematologista para início do acompanhamento especializado, vacinação e profilaxia com penicilina."
+  },
+  {
+    question: "Criança de 18 meses com anemia falciforme apresenta febre de 39,2 °C de início súbito. Pais relatam que ela está 'mole'. Por que pacientes com anemia falciforme são especialmente vulneráveis a infecções bacterianas invasivas?",
+    options: [
+      "Autoesplenectomia funcional progressiva por infartos esplênicos repetidos, eliminando a imunidade anti-polissacarídica",
+      "Neutropenia crônica induzida pela hidroxiureia, que compromete a resposta imune inata nas infecções",
+      "Deficiência de IgG específica para encapsulados, produzida exclusivamente pelo baço em crianças",
+      "Anemia crônica grave que compromete a perfusão tissular e reduz a chegada de células imunes ao foco",
+      "Disfunção hepática crônica por microinfartos que reduz a síntese de complemento e opsoninas circulantes"
+    ],
+    correctIndex: 0,
+    explanation: "Na anemia falciforme, infartos esplênicos repetidos desde a lactância levam à autoesplenectomia funcional (baço não filtra bactérias encapsuladas como S. pneumoniae, H. influenzae, N. meningitidis). O baço é o principal órgão de produção de anticorpos IgM anti-polissacarídio e de opsoninas. Sem esse filtro, bactérias encapsuladas causam sepse fulminante. Por isso, profilaxia com penicilina oral (até 5 anos) e vacinação para pneumococo, meningococo e H. influenzae são mandatórias."
+  },
+  {
+    question: "Adulto de 30 anos com anemia falciforme em uso de hidroxiureia há 2 anos. Hb subiu de 7 para 9,5 g/dL, crises reduziram de 6 para 1 por ano. Apresenta leucopenia discreta (3.200/mm³). Qual é a conduta mais adequada?",
+    options: [
+      "Monitorar com hemograma mensal; leucopenia moderada é efeito esperado e benéfico da hidroxiureia",
+      "Suspender a hidroxiureia imediatamente, pois leucopenia abaixo de 3.500 contraindica o uso contínuo",
+      "Reduzir a dose pela metade e repetir o hemograma em 2 semanas, pois qualquer leucopenia exige ajuste",
+      "Adicionar G-CSF (fator estimulador de granulócitos) para manter leucócitos acima de 5.000/mm³",
+      "Substituir por L-glutamina, pois a leucopenia indica toxicidade da hidroxiureia sem possibilidade de ajuste"
+    ],
+    correctIndex: 0,
+    explanation: "A leucopenia é um efeito esperado da hidroxiureia (mecanismo mielossupressor). A redução dos leucócitos é, inclusive, parte do mecanismo terapêutico — leucócitos ativados contribuem para a vaso-oclusão. Leucopenia moderada (> 2.000 neutrófilos absolutos) com boa resposta clínica (menos crises, Hb melhor) permite manutenção da dose. A interrupção é indicada se neutrófilos < 2.000/mm³ ou plaquetas < 80.000/mm³, com reinício em dose reduzida após recuperação."
+  },
+  {
+    question: "Mulher com anemia falciforme, 22 anos, engravidou. Qual é o principal risco obstétrico da anemia falciforme e o principal benefício de manter a hidroxiureia durante a gestação?",
+    options: [
+      "Maior risco de crises vaso-oclusivas, AVC e STA; hidroxiureia é, contudo, contraindicada na gestação por teratogenicidade",
+      "Maior risco de anemia aplástica gestacional; hidroxiureia é mantida na gestação por ausência de risco fetal",
+      "Maior risco de pré-eclâmpsia apenas; hidroxiureia pode ser mantida no terceiro trimestre com segurança",
+      "Menor risco gestacional que na população geral, pois a falcização reduz a viscosidade e protege a placenta",
+      "Maior risco apenas de infecções urinárias; hidroxiureia é suspensa e substituída por transfusão profilática"
+    ],
+    correctIndex: 0,
+    explanation: "A gestação na anemia falciforme aumenta o risco de crises vaso-oclusivas, STA, AVC, pré-eclâmpsia, restrição de crescimento fetal e mortalidade materna. A hidroxiureia é teratogênica em modelos animais (inibe a ribonucleotídeo redutase e a síntese de DNA fetal) e, portanto, contraindicada na gestação. Deve ser suspensa antes da concepção. O manejo gestacional inclui ácido fólico, transfusões seletivas e monitorização intensiva materno-fetal."
+  },
+  {
+    question: "Qual é o único tratamento curativo disponível para a anemia falciforme e quais são os principais critérios de elegibilidade?",
+    options: [
+      "Transplante alogênico de medula óssea com doador HLA compatível, indicado em casos graves com irmão compatível",
+      "Terapia gênica com edição CRISPR-Cas9, aprovada pela ANVISA para adultos com crises graves recorrentes",
+      "Exsanguíneotransfusão crônica mensal com doador universal, que elimina progressivamente a HbS circulante",
+      "Esplenectomia total antes dos 5 anos, que elimina a hemólise extravascular e estabiliza a anemia definitivamente",
+      "Hidroxiureia em dose máxima por 10 anos consecutivos, que induz remissão completa e cura funcional"
+    ],
+    correctIndex: 0,
+    explanation: "O transplante alogênico de medula óssea é o único tratamento curativo disponível. Os critérios de elegibilidade incluem: doença grave (AVC prévio, crises frequentes, STA recorrente, lesão de órgão-alvo) e doador HLA compatível (preferencialmente irmão). A mortalidade relacionada ao transplante é de 5–10% e o risco de doença enxerto-versus-hospedeiro limita sua indicação. As terapias gênicas (lentivírus, CRISPR) são promissoras e já aprovadas nos EUA/Europa para casos selecionados, mas com acesso muito limitado."
+  },
+  {
+    question: "Adulto com anemia falciforme apresenta exames de rotina: creatinina 1,8 mg/dL, proteinúria 2+, urina com hematúria microscópica. Qual complicação renal crônica da AF está presente e qual é seu mecanismo?",
+    options: [
+      "Nefropatia falciforme por hipóxia e falcização na medula renal, causando hematúria, proteinúria e DRC",
+      "Nefrite lúpica secundária à AF, por depósito de imunocomplexos HbS-IgG nos glomérulos",
+      "Necrose tubular aguda por hemoglobinúria das crises hemolíticas, causando insuficiência renal aguda",
+      "Nefrocalcinose por hipercalciúria induzida pela falcização nas células tubulares proximais",
+      "Glomeruloesclerose focal e segmentar por hiperfiltração compensatória na hidronefrose bilateral crônica"
+    ],
+    correctIndex: 0,
+    explanation: "A nefropatia falciforme resulta da hipóxia e baixo pH da medula renal (ambiente que favorece a falcização), causando infartos medulares repetidos. As manifestações incluem hematúria (frequentemente macroscópica, por infarto papilar), hipostenúria (incapacidade de concentrar a urina), proteinúria e progressão para DRC. A glomeruloesclerose por hiperfiltração também contribui. Iinibidores da ECA ou BRA são usados para reduzir a proteinúria e retardar a progressão."
+  },
+  {
+    question: "Paciente de 35 anos com anemia falciforme apresenta úlceras peri-maleolares bilaterais crônicas há 3 anos, sem sinais de infecção ativa. Qual é o mecanismo fisiopatológico dessas úlceras?",
+    options: [
+      "Estase vascular local com isquemia crônica por falcização na microcirculação dos membros inferiores",
+      "Infecção crônica por Staphylococcus aureus com formação de biofilme na região maleolar bilateral",
+      "Vasculite autoimune induzida pelos anticorpos anti-HbS circulantes em pacientes com doença avançada",
+      "Insuficiência venosa crônica por varizes secundárias à esplenomegalia e hipertensão portal associada",
+      "Depósito de hemossiderina por hemólise crônica, causando inflamação dérmica e ulceração química"
+    ],
+    correctIndex: 0,
+    explanation: "As úlceras peri-maleolares na anemia falciforme resultam da combinação de estase venosa local (pela baixa velocidade de fluxo nas extremidades distais) com isquemia crônica pela falcização na microcirculação cutânea. A região maleolar tem circulação terminal, tornando-a especialmente vulnerável. As úlceras podem levar anos para cicatrizar, mesmo com cuidados adequados. O tratamento inclui hidroxiureia, curativo especializado e, em casos refratários, transfusão crónica."
+  },
+  {
+    question: "Pai e mãe de uma criança têm traço falciforme (HbAS). Qual é a probabilidade de cada gestação resultar em filho com anemia falciforme (HbSS), traço falciforme (HbAS) e genótipo normal (HbAA)?",
+    options: [
+      "25% HbSS (anemia falciforme), 50% HbAS (traço falciforme) e 25% HbAA (normal)",
+      "50% HbSS (anemia falciforme), 25% HbAS (traço falciforme) e 25% HbAA (normal)",
+      "25% HbSS (anemia falciforme), 25% HbAS (traço falciforme) e 50% HbAA (normal)",
+      "50% HbSS (anemia falciforme), 50% HbAA (normal) e nenhum filho com traço falciforme",
+      "100% HbAS (traço falciforme), pois dois portadores não podem ter filho com doença completa"
+    ],
+    correctIndex: 0,
+    explanation: "A anemia falciforme tem herança autossômica recessiva. Quando ambos os pais são HbAS, cada gravidez tem: 25% de chance de HbSS (doença), 50% de HbAS (traço, assintomático) e 25% de HbAA (normal). O aconselhamento genético e a triagem pré-natal são essenciais para casais com traço falciforme, pois têm risco de 1 em 4 de filho com anemia falciforme a cada gestação."
+  },
+  {
+    question: "Qual exame confirma definitivamente o diagnóstico de anemia falciforme e o que se encontra em paciente com HbSS?",
+    options: [
+      "Eletroforese de hemoglobina: predominância de HbS (80–95%), ausência de HbA e presença de HbF residual",
+      "Teste de falcização com metabissulfito de sódio: presença de hemácias em foice, diagnóstico definitivo",
+      "Hemograma com contagem de reticulócitos: reticulocitose acima de 15% confirma anemia falciforme",
+      "Esfregaço de sangue periférico com hemácias em foice em repouso, sem necessidade de outros exames",
+      "PCR para mutação no códon 6 da globina beta, que é o único exame com 100% de especificidade"
+    ],
+    correctIndex: 0,
+    explanation: "A eletroforese de hemoglobina é o exame padrão para diagnóstico. Na HbSS: HbS predomina (80–95%), HbA está ausente, HbF varia (2–20%) e HbA2 está normal ou levemente elevada. O esfregaço pode mostrar hemácias em foice (especialmente após crises), mas é inespecífico. O teste de falcização confirma a presença de HbS, mas não distingue HbSS de HbAS. O diagnóstico molecular é confirmatório, mas a eletroforese é suficiente na prática clínica."
+  },
+  {
+    question: "Criança com anemia falciforme apresenta febre de 38,8 °C e prostração. Hb 7,2 g/dL (basal 7 g/dL), leucócitos 18.000/mm³. Médico prescreve antibioticoterapia imediata. Qual é o esquema antibiótico de escolha para sepse em paciente com asplenia funcional?",
+    options: [
+      "Ceftriaxona endovenosa, com cobertura para Streptococcus pneumoniae e outros encapsulados",
+      "Amoxicilina oral em dose alta, com espectro adequado para pneumococo em paciente ambulatorial",
+      "Vancomicina isolada endovenosa, pois cobre pneumococo resistente e estafilococos na sepse grave",
+      "Azitromicina endovenosa como monoterapia, com cobertura para atípicos e pneumococo sensível",
+      "Ciprofloxacino oral, pois tem excelente penetração tissular e cobre gram-negativos e pneumococo"
+    ],
+    correctIndex: 0,
+    explanation: "Na anemia falciforme com asplenia funcional, a sepse fulminante por bactérias encapsuladas é uma emergência com mortalidade alta. S. pneumoniae é o principal agente. A ceftriaxona (cefalosporina de 3ª geração) é o antibiótico de escolha por ter excelente cobertura para pneumococo (incluindo muitos cepas resistentes), H. influenzae e N. meningitidis, boa penetração tecidual e posologia conveniente (1x/dia IV). Em casos com suspeita de resistência alta, adiciona-se vancomicina."
+  },
+  {
+    question: "Paciente com anemia falciforme em uso crônico de transfusão para prevenção de AVC. Após 2 anos, ferritina 4.500 ng/mL, saturação de transferrina 95%. Qual complicação está se instalando e qual é a conduta?",
+    options: [
+      "Sobrecarga de ferro (hemossiderose transfusional); quelação com desferroxamina ou deferasirox",
+      "Hemocromatose hereditária associada; triagem familiar para mutação HFE e flebotomia terapêutica",
+      "Infecção por agente transmitido por transfusão; suspender transfusões e iniciar antiviral empírico",
+      "Reação transfusional retardada por aloimunização; trocar para hemácias fenotipadas e irradiadas",
+      "Ativação da eritropoese ineficaz; iniciar eritropoetina para reduzir a necessidade de transfusão"
+    ],
+    correctIndex: 0,
+    explanation: "A transfusão crônica acumula 200–250 mg de ferro por bolsa. O organismo não tem mecanismo de excreção ativa de ferro, levando à sobrecarga (hemossiderose) com deposição em fígado, coração e endócrinas. Ferritina > 1.000 ng/mL com saturação de transferrina > 80% indica sobrecarga significativa. O tratamento é a quelação de ferro: desferroxamina (SC 5–7 noites/semana) ou deferasirox (oral, 1x/dia). Sem quelação, o paciente evolui com cardiomiopatia e disfunção hepática."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+const questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+let current = 0, correct = 0, wrong = 0, answered = false;
+
+function startQuiz() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D','E'];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Questão ${current + 1} de ${questions.length}`;
+  document.getElementById('questionCard').innerHTML = `
+    <div class="question-meta">
+      <span class="question-number">Questão ${current + 1}</span>
+      <span class="question-area">Anemia Falciforme</span>
+    </div>
+    <div class="question-text">${q.question}</div>
+    <div class="options-list">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" onclick="selectAnswer(${i})" id="opt${i}">
+          <span class="option-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('')}
+    </div>
+    <div id="feedback" style="display:none"></div>
+  `;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+  const isCorrect = idx === q.correctIndex;
+  buttons[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correctIndex].classList.add('correct');
+  if (isCorrect) correct++; else wrong++;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.innerHTML = `
+    <div class="feedback-badge ${isCorrect ? 'correct-badge' : 'wrong-badge'}">${isCorrect ? '✓ Correto!' : '✗ Incorreto'}</div>
+    <div class="explanation-box"><strong>Explicação:</strong>${q.explanation}</div>
+    <button class="btn-next" onclick="nextQuestion()">${current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado'}</button>
+  `;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) renderQuestion();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  const pct = Math.round((correct / questions.length) * 100);
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('totalCorrect').textContent = correct;
+  document.getElementById('totalWrong').textContent = wrong;
+}
+
+function restartQuiz() {
+  current = 0; correct = 0; wrong = 0;
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+</script>
+</body>
+</html>
