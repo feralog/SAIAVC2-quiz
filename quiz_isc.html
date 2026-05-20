@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Infecção de Sítio Cirúrgico</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #fff7ed; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { max-width: 780px; width: 100%; }
+    .start-screen { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .start-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 48px 32px; }
+    .start-header h1 { font-size: 1.9rem; margin-bottom: 8px; }
+    .start-header p { opacity: 0.85; font-size: 1rem; }
+    .start-body { padding: 40px 32px; }
+    .start-body p { color: #374151; font-size: 1rem; line-height: 1.6; margin-bottom: 8px; }
+    .badge-row { display: flex; gap: 16px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .badge { background: #fff7ed; border: 2px solid #ea580c; color: #c2410c; border-radius: 999px; padding: 6px 20px; font-size: 0.875rem; font-weight: 600; }
+    .btn-start { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .quiz-screen { display: none; }
+    .progress-bar-wrap { background: #fed7aa; border-radius: 999px; height: 8px; margin-bottom: 20px; }
+    .progress-bar { background: linear-gradient(90deg, #7c2d12, #ea580c); border-radius: 999px; height: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-bottom: 6px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 20px 24px; }
+    .card-header .q-num { font-size: 0.8rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .card-body { padding: 28px 24px; }
+    .question-text { font-size: 1rem; color: #111827; line-height: 1.65; margin-bottom: 24px; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt { background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; cursor: pointer; font-size: 0.92rem; color: #374151; line-height: 1.45; transition: all 0.15s; text-align: left; width: 100%; }
+    .opt:hover:not(.disabled) { border-color: #ea580c; background: #fff7ed; }
+    .opt.correct { background: #fff7ed; border-color: #ea580c; color: #7c2d12; }
+    .opt.wrong { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+    .opt.disabled { cursor: default; }
+    .feedback { margin-top: 20px; border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; line-height: 1.55; display: none; }
+    .feedback.correct { background: #fff7ed; border-left: 4px solid #ea580c; color: #7c2d12; }
+    .feedback.wrong { background: #fef2f2; border-left: 4px solid #dc2626; color: #7f1d1d; }
+    .btn-next { display: none; margin-top: 20px; background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 13px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; float: right; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(234,88,12,0.4); }
+    .clearfix { clear: both; }
+    .result-screen { display: none; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; text-align: center; }
+    .result-header { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 100%); color: white; padding: 40px 32px; }
+    .result-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .score-big { font-size: 4rem; font-weight: 800; margin: 16px 0; }
+    .result-body { padding: 36px 32px; }
+    .stats { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat { background: #fff7ed; border: 2px solid #fed7aa; border-radius: 12px; padding: 20px 28px; min-width: 120px; }
+    .stat .val { font-size: 2rem; font-weight: 700; color: #ea580c; }
+    .stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .stat.wrong-stat .val { color: #dc2626; }
+    .stat.wrong-stat { border-color: #fecaca; background: #fef2f2; }
+    .btn-retry { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); color: white; border: none; border-radius: 10px; padding: 14px 40px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+    .question-img { max-width: 100%; border-radius: 6px; margin: 10px 0 16px 0; display: block; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-header">
+      <h1>Infecção de Sítio Cirúrgico</h1>
+      <p>Classificação · Cicatrização · ISC · Prevenção</p>
+    </div>
+    <div class="start-body">
+      <p>Quiz de casos clínicos sobre feridas cirúrgicas, classificação CDC, ISC e cicatrização de feridas.</p>
+      <div class="badge-row">
+        <span class="badge">20 questões</span>
+        <span class="badge">Casos clínicos</span>
+        <span class="badge">Cirurgia</span>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Começar</button>
+    </div>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-label">
+      <span id="progressText">Questão 1 de 20</span>
+      <span id="scoreText">Acertos: 0</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="q-num" id="qNum">Questão 1</div>
+      </div>
+      <div class="card-body">
+        <div id="questionImg"></div>
+        <p class="question-text" id="questionText"></p>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn-next" id="btnNext" onclick="nextQuestion()">Próxima questão →</button>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-header">
+      <h2>Quiz concluído!</h2>
+      <div class="score-big" id="scorePct">--%</div>
+    </div>
+    <div class="result-body">
+      <div class="stats">
+        <div class="stat"><div class="val" id="statCorrect">-</div><div class="lbl">Acertos</div></div>
+        <div class="stat wrong-stat"><div class="val" id="statWrong">-</div><div class="lbl">Erros</div></div>
+        <div class="stat"><div class="val" id="statTotal">-</div><div class="lbl">Total</div></div>
+      </div>
+      <button class="btn-retry" onclick="retryQuiz()">Refazer quiz</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const imagens = {};
+
+const rawQuestions = [
+  {
+    question: "Paciente submetido a hernioplastia inguinal eletiva sem abertura de vísceras ocas. A ferida não apresenta sinais de inflamação e é fechada por planos no centro cirúrgico. Qual é a classificação CDC dessa ferida e qual é a taxa esperada de ISC?",
+    imageKey: null,
+    options: [
+      "Classe 1 (limpa): sem inflamação, fechada primariamente, sem acesso a tratos — ISC 1-5%",
+      "Classe 2 (potencialmente contaminada): abertura controlada de trato — ISC 3-11%",
+      "Classe 3 (contaminada): violação de técnica asséptica com contaminação significativa — ISC 0-17%",
+      "Classe 4 (infectada): tecidos desvitalizados com presença de pus ou inflamação — ISC >27%",
+      "Classe 1 (limpa): sem inflamação, fechada primariamente, sem acesso a tratos — ISC <1%"
+    ],
+    correctIndex: 0,
+    explanation: "Ferida de Classe 1 (limpa): não infectada, sem sinais de inflamação, fechada primariamente, não envolve os tratos respiratório, alimentar, genital ou urinário. Taxa de ISC: 1-5%. Exemplos: hernioplastia, mastectomia, tireoidectomia. O risco é baixo porque a ferida não tem contato com flora bacteriana endógena dos tratos viscerais."
+  },
+  {
+    question: "Cirurgião realiza colecistectomia videolaparoscópica eletiva por colelitíase, sem intercorrências. A bile não extravasou durante a cirurgia. Qual é a classificação CDC dessa ferida?",
+    imageKey: null,
+    options: [
+      "Classe 2 (potencialmente contaminada): penetração controlada no trato alimentar — ISC 3-11%",
+      "Classe 1 (limpa): sem contato com víscera oca, trato alimentar não aberto — ISC 1-5%",
+      "Classe 3 (contaminada): qualquer acesso à via biliar é considerado contaminação — ISC 0-17%",
+      "Classe 4 (infectada): manipulação do trato biliar sempre contamina a ferida — ISC >27%",
+      "Classe 2 (potencialmente contaminada): qualquer laparoscopia é considerada nessa classe"
+    ],
+    correctIndex: 0,
+    explanation: "Ferida de Classe 2 (potencialmente contaminada): envolve a penetração nos tratos respiratório, alimentar, genital ou urinário, mas somente em circunstâncias controladas (sem extravasamento significativo). Exemplos: colecistectomia eletiva, histerectomia, ressecção de cólon eletiva. Taxa de ISC: 3-11%. A contaminação potencial vem da flora bacteriana do trato biliar/intestinal."
+  },
+  {
+    question: "Laparotomia de urgência por perfuração de úlcera péptica com peritonite química localizada. Há extravasamento de conteúdo gástrico na cavidade. Qual é a classificação CDC dessa ferida?",
+    imageKey: null,
+    options: [
+      "Classe 3 (contaminada): extravasamento do trato gastrointestinal ou violação da técnica — ISC 0-17%",
+      "Classe 4 (infectada): presença de pus na cavidade e tecidos desvitalizados — ISC >27%",
+      "Classe 2 (potencialmente contaminada): abertura controlada do trato digestivo — ISC 3-11%",
+      "Classe 1 (limpa): ferida sem contaminação porque o suco gástrico é estéril por pH baixo",
+      "Classe 3 (contaminada): toda cirurgia de urgência abdominal é automaticamente Classe 3"
+    ],
+    correctIndex: 0,
+    explanation: "Ferida de Classe 3 (contaminada): resulta de violação da técnica de esterilização, extravasamento do trato gastrointestinal ou incisão em área de inflamação aguda (não purulenta). Na perfuração de úlcera com conteúdo gástrico na cavidade, há extravasamento — Classe 3. Taxa de ISC: 0-17% (ampla variação dependendo do tempo de evolução e controle da contaminação)."
+  },
+  {
+    question: "Laparotomia de urgência por peritonite fecal grave por perfuração diverticular com pus livre na cavidade abdominal. Qual é a classificação CDC e a taxa de ISC esperada?",
+    imageKey: null,
+    options: [
+      "Classe 4 (infectada): pus livre na cavidade com tecidos desvitalizados — ISC >27%",
+      "Classe 3 (contaminada): extravasamento fecal sem pus, inflamação não purulenta — ISC 0-17%",
+      "Classe 2 (potencialmente contaminada): cirurgia de urgência com acesso controlado — ISC 3-11%",
+      "Classe 4 (infectada): toda peritonite fecal é infectada independente da presença de pus",
+      "Classe 3 (contaminada): presença de fezes não define necessariamente ferida infectada"
+    ],
+    correctIndex: 0,
+    explanation: "Ferida de Classe 4 (infectada): ocorre quando há presença de infecção pré-existente, pus, tecidos necróticos ou órgãos perfurados com derramamento significativo. Na peritonite fecal com pus livre na cavidade, a classificação é Classe 4. Taxa de ISC: mais de 27%. Nesse contexto, a ferida abdominal muitas vezes é deixada aberta (fechamento secundário) para reduzir o risco de infecção profunda."
+  },
+  {
+    question: "Paciente de 5º PO de colectomia apresenta hiperemia, calor, edema e saída de secreção purulenta pela ferida operatória, restrita à pele e subcutâneo. Qual é o diagnóstico e como a ISC é classificada segundo o CDC?",
+    imageKey: null,
+    options: [
+      "ISC superficial: envolve pele e tecido subcutâneo, diagnosticada em até 30 dias do procedimento",
+      "ISC profunda: envolve fáscia e músculo com risco de deiscência e evisceração abdominal",
+      "ISC de órgão/espaço: envolve a cavidade abdominal com formação de abscesso intra-abdominal",
+      "ISC profunda: qualquer saída de secreção purulenta indica comprometimento fascial profundo",
+      "ISC superficial: ocorre exclusivamente nas primeiras 48h e sempre cursa com febre alta"
+    ],
+    correctIndex: 0,
+    explanation: "A ISC é classificada pelo CDC em: (1) Superficial incisional: envolve pele e tecido subcutâneo, diagnosticada em até 30 dias do procedimento (1 ano se implante); (2) Profunda incisional: envolve tecidos moles profundos (fáscia e músculo); (3) Órgão/espaço: envolve qualquer órgão ou espaço aberto durante a cirurgia. No caso descrito, a infecção está restrita a pele e subcutâneo = ISC superficial."
+  },
+  {
+    question: "Paciente de 7º PO de sigmoidectomia apresenta febre alta, dor abdominal intensa e saída de líquido fecaloide pela ferida operatória, com deiscência parcial da fáscia ao exame. Qual é a classificação da ISC?",
+    imageKey: null,
+    options: [
+      "ISC profunda: envolve tecidos moles profundos (fáscia e músculo) com risco de evisceração",
+      "ISC superficial: saída de líquido pela ferida é critério de ISC superficial, mesmo com febre",
+      "ISC de órgão/espaço: o conteúdo fecal origina-se de cavidade abdominal, não da ferida",
+      "ISC superficial: deiscência fascial isolada não define ISC profunda sem confirmação por imagem",
+      "ISC de órgão/espaço: toda ISC com febre alta e dor abdominal é automaticamente orgânica"
+    ],
+    correctIndex: 0,
+    explanation: "ISC profunda incisional: envolve tecidos moles profundos (fáscia e músculo), diagnosticada em até 30 dias (1 ano com implante). Critérios: drenagem purulenta da incisão profunda, deiscência espontânea da fáscia, abscesso profundo encontrado no exame ou imagem, ou cirurgião que a diagnostica clinicamente. A deiscência fascial com conteúdo fecaloide configura ISC profunda."
+  },
+  {
+    question: "Qual é o microrganismo mais frequentemente isolado nas infecções de sítio cirúrgico, independente do tipo de cirurgia?",
+    imageKey: null,
+    options: [
+      "Staphylococcus aureus: principal causa de ISC em cirurgias limpas e potencialmente contaminadas",
+      "Escherichia coli: principal agente em todas as ISC por ser flora intestinal ubíqua",
+      "Pseudomonas aeruginosa: prevalente em ISC de cirurgias abdominais de urgência",
+      "Streptococcus pyogenes: principal responsável por ISC com celulite pericicatricial difusa",
+      "Bacteroides fragilis: anaeróbio dominante em ISC de cirurgias colorretais de urgência"
+    ],
+    correctIndex: 0,
+    explanation: "Staphylococcus aureus é o agente mais frequentemente isolado em ISC no geral, especialmente em cirurgias limpas e potencialmente contaminadas. É colonizador comum da pele e mucosas (fossa nasal em ~30% da população). Em cirurgias colorretais (Classe 3-4), predominam Gram-negativos (E. coli, Klebsiella) e anaeróbios (Bacteroides). MRSA é causa importante em pacientes hospitalizados prolongadamente ou com contato prévio com serviços de saúde."
+  },
+  {
+    question: "Anestesista pergunta ao cirurgião sobre o timing correto para administração da profilaxia antibiótica pré-operatória em cirurgia limpa-contaminada. Qual é o intervalo ideal?",
+    imageKey: null,
+    options: [
+      "Até 60 minutos antes da incisão cirúrgica para garantir nível tecidual adequado no momento do corte",
+      "Imediatamente após a incisão, para não prolongar o período pré-operatório desnecessariamente",
+      "24 horas antes da cirurgia para saturar os tecidos com antibiótico e prevenir colonização",
+      "Apenas no pós-operatório imediato, por 24-48h, pois a incisão já ocorreu sem contaminação",
+      "Somente em cirurgias de Classe 3 e 4; cirurgias limpas e limpas-contaminadas não necessitam"
+    ],
+    correctIndex: 0,
+    explanation: "A profilaxia antibiótica deve ser administrada dentro de 60 minutos antes da incisão cirúrgica (vancomicina e fluoroquinolonas requerem 120 min por infusão lenta). Isso garante concentração tecidual adequada no momento da incisão e durante o ato operatório. Doses repetidas são necessárias em cirurgias longas (> 4h) ou com perda sanguínea > 1500 mL. A profilaxia não deve ser mantida por mais de 24h no pós-operatório."
+  },
+  {
+    question: "Paciente diabética, obesa (IMC 42) e tabagista será submetida a histerectomia abdominal total. A equipe discute estratégias de prevenção de ISC. Qual é a principal medida comprovada para reduzir ISC nesse caso?",
+    imageKey: null,
+    options: [
+      "Controle perioperatório da glicemia (manter < 180 mg/dL), pois hiperglicemia aumenta ISC",
+      "Tricotomia com lâmina na véspera para reduzir a carga bacteriana cutânea no ato cirúrgico",
+      "Antibioticoprofilaxia pós-operatória por 5 dias para cobrir o período de risco aumentado",
+      "Manter hipotermia leve (< 35°C) para reduzir a atividade metabólica e o risco de infecção",
+      "Dreno profilático subcutâneo em todos os casos com IMC > 30 para prevenir seromas"
+    ],
+    correctIndex: 0,
+    explanation: "A hiperglicemia perioperatória (especialmente > 200 mg/dL) compromete a função leucocitária, reduz a quimiotaxia e prejudica a cicatrização — aumentando significativamente o risco de ISC. O controle glicêmico perioperatório (< 180 mg/dL, ideal 140-180 mg/dL) é uma das medidas mais importantes. Outros: banho com clorexidina pré-op, normotermia, antibioticoprofilaxia adequada e remoção de pelos com clipper (não lâmina)."
+  },
+  {
+    question: "Residente pergunta sobre a melhor técnica para remoção de pelos no sítio cirúrgico para prevenir ISC. Qual é a recomendação atual?",
+    imageKey: null,
+    options: [
+      "Clipper elétrico imediatamente antes da cirurgia: menor lesão cutânea e menor taxa de ISC",
+      "Lâmina de barbear na noite anterior: remove completamente os pelos e prepara a pele",
+      "Creme depilatório aplicado 12h antes da cirurgia para remoção química sem trauma cutâneo",
+      "Lâmina de barbear no bloco cirúrgico: remoção imediata reduz o tempo de colonização",
+      "Não é necessário remover pelos; a antissepsia com clorexidina é suficiente em qualquer sítio"
+    ],
+    correctIndex: 0,
+    explanation: "A lâmina de barbear provoca microlesões cutâneas que facilitam a colonização bacteriana e aumentam o risco de ISC — especialmente quando feita na véspera da cirurgia. O clipper (aparelho de tosa/corte) é recomendado quando a remoção de pelos é necessária, pois não causa microlesões. Deve ser aplicado imediatamente antes da cirurgia (não na véspera). Se os pelos não atrapalham a cirurgia, a remoção não é necessária."
+  },
+  {
+    question: "Residente pergunta sobre as fases da cicatrização de feridas. Qual é a fase corretamente descrita pela sequência: hemostasia → aumento de permeabilidade vascular → migração de PMN → migração de macrófagos?",
+    imageKey: null,
+    options: [
+      "Fase inflamatória: hemostasia seguida de aumento de permeabilidade e migração celular",
+      "Fase proliferativa: angiogênese, fibroplasia, síntese de colágeno e epitelização",
+      "Fase de maturação: contração da ferida e remodelação do colágeno neoformado",
+      "Fase de regeneração: restauração perfeita sem cicatriz, como em tecidos embrionários",
+      "Fase hemostática isolada: ocorre antes da inflamação, sem relação com a migração celular"
+    ],
+    correctIndex: 0,
+    explanation: "A cicatrização de feridas ocorre em três fases sobrepostas: (1) Inflamatória: hemostasia (tampão plaquetário, cascata de coagulação) → aumento de permeabilidade vascular (histamina, serotonina) → migração de PMN → macrófagos → linfócitos; (2) Proliferativa: angiogênese, fibroplasia (migração de fibroblastos), síntese de colágeno, epitelização; (3) Maturação/remodelação: contração da ferida e reorganização do colágeno. As fases podem se sobrepor na mesma ferida."
+  },
+  {
+    question: "Cirurgião explica a residentes: 'Esta célula está no centro da cicatrização — sem ela, o processo não seria ideal.' Qual célula é essa e por quê é indispensável?",
+    imageKey: null,
+    options: [
+      "Macrófago: regula todas as fases da cicatrização, debrida tecido necrótico e coordena fibroblastos",
+      "Fibroblasto: sintetiza colágeno e é a principal célula da fase proliferativa da cicatrização",
+      "Neutrófilo (PMN): primeira célula a chegar à ferida e principal agente antimicrobiano",
+      "Plaqueta: promove hemostasia e libera fatores de crescimento que iniciam a cicatrização",
+      "Célula endotelial: realiza angiogênese essencial para nutrição do tecido de granulação"
+    ],
+    correctIndex: 0,
+    explanation: "O macrófago é a célula central da cicatrização. Ele realiza desbridamento do tecido necrótico (fagocitose), produz citocinas que regulam a inflamação, recruta e ativa fibroblastos (via TGF-β, PDGF), estimula angiogênese e coordena a transição entre as fases inflamatória e proliferativa. Em modelos experimentais de depleção de macrófagos, a cicatrização é gravemente comprometida, com formação inadequada de tecido de granulação."
+  },
+  {
+    question: "Paciente jovem e negro apresenta cicatriz exuberante após ferimento no tórax, que cresceu além das margens da lesão original após 6 meses e não regrediu espontaneamente. Qual é o diagnóstico?",
+    imageKey: null,
+    options: [
+      "Queloide: cicatriz que cresce além das margens originais, não regride, mais comum em negros",
+      "Cicatriz hipertrófica: permanece nos limites da lesão, é prevenível e regride espontaneamente",
+      "Cicatriz quelóide: permanece nos limites da lesão, é prevenível em qualquer fototipo",
+      "Cicatriz hipertrófica: cresce além das margens e é mais comum em peles escuras especificamente",
+      "Fibrose cicatricial: depósito excessivo de colágeno dentro dos limites da lesão original"
+    ],
+    correctIndex: 0,
+    explanation: "Queloide: cicatriz de deposição excessiva de colágeno que cresce ALÉM das margens da ferida original, não é prevenível, frequentemente refratária ao tratamento e mais comum em peles escuras (15-20% de negros e hispânicos). Predisposição genética. Locais mais acometidos: clavícula, tronco, MMSS e face. Diferente da cicatriz hipertrófica, que permanece dentro dos limites da lesão, é prevenível e regride espontaneamente."
+  },
+  {
+    question: "Cirurgião decide deixar a ferida abdominal aberta após laparotomia por peritonite fecal, planejando fechamento cirúrgico secundário após 5 dias. Qual é o tipo de fechamento empregado?",
+    imageKey: null,
+    options: [
+      "Fechamento terciário (primário tardio): ferida deixada aberta e fechada cirurgicamente depois",
+      "Fechamento secundário: ferida não é unida, fecha-se gradualmente de baixo para cima",
+      "Fechamento primário: bordas aproximadas imediatamente com perda mínima de tecido",
+      "Fechamento terciário: sinônimo de fechamento secundário, sem distinção técnica reconhecida",
+      "Fechamento primário tardio: bordas aproximadas após antibioticoterapia, sem granulação prévia"
+    ],
+    correctIndex: 0,
+    explanation: "Existem três tipos de fechamento: (1) Primário: bordas aproximadas imediatamente (cirurgias limpas/contaminadas controladas); (2) Secundário: ferida deixada aberta para cicatrização gradual 'de baixo para cima' por crescimento de tecido de granulação (feridas infectadas); (3) Terciário (primário tardio): ferida inicialmente deixada aberta para granulação e, posteriormente, fechada cirurgicamente — usado em peritonites e feridas altamente contaminadas."
+  },
+  {
+    question: "Paciente diabético com úlcera no pé há 4 meses não evolui para cicatrização apesar do curativo regular. A biopsia não mostra infecção ativa. Qual é a definição de ferida crônica e o mecanismo que impede a progressão?",
+    imageKey: null,
+    options: [
+      "Ferida crônica: persiste presa na fase inflamatória sem progredir para fechamento por fatores locais e sistêmicos",
+      "Ferida crônica: ferida com mais de 4 semanas de evolução, independente da causa ou do estágio",
+      "Ferida crônica: ferida que não cicatrizou após antibioticoterapia por 30 dias de duração",
+      "Ferida crônica: ferida com infecção persistente que impede a migração de fibroblastos locais",
+      "Ferida crônica: ferida sem suprimento sanguíneo adequado, por definição isquêmica e necrótica"
+    ],
+    correctIndex: 0,
+    explanation: "Ferida crônica é aquela que persiste presa em uma fase da cicatrização (geralmente a inflamatória) e não evolui de forma ordenada para o fechamento. Na úlcera diabética, a hiperglicemia, isquemia microvascular e neuropatia periférica criam um ambiente inflamatório crônico com excesso de metaloproteínas que degradam o colágeno neoformado — impedindo a progressão para a fase proliferativa. O diabetes compromete múltiplas etapas da cicatrização."
+  },
+  {
+    question: "Nutricionista solicita albumina sérica como parte da avaliação pré-operatória de risco cirúrgico. Qual é o papel da albumina na cicatrização e qual é seu significado clínico nesse contexto?",
+    imageKey: null,
+    options: [
+      "Marcador de desnutrição proteica: albumina baixa compromete síntese de colágeno e resposta imune",
+      "Marcador de inflamação aguda: albumina elevada na fase pré-operatória indica risco aumentado de ISC",
+      "Marcador de função hepática: albumina baixa indica insuficiência hepatocelular sem relação com cicatrização",
+      "Marcador de hemostasia: albumina baixa indica trombocitopenia e risco de sangramento cirúrgico",
+      "Marcador de hidratação: albumina baixa indica hipervolemia com redistribuição de proteínas plasmáticas"
+    ],
+    correctIndex: 0,
+    explanation: "A albumina sérica é um marcador de desnutrição proteica (< 3,5 g/dL = hipoalbuminemia). A nutrição é um fator crítico na cicatrização: proteínas são essenciais para síntese de colágeno (fibroblastos), função leucocitária e resposta imune. Desnutrição grave (albumina < 2,5 g/dL) compromete significativamente a cicatrização e aumenta o risco de ISC, deiscência e complicações pós-operatórias. Suplementação nutricional pré-operatória reduz esse risco."
+  },
+  {
+    question: "Paciente com ISC superficial no 6º PO de colectomia tem saída de secreção purulenta pela ferida operatória. Qual é a conduta inicial de primeira linha?",
+    imageKey: null,
+    options: [
+      "Abertura e drenagem da ferida com curativos até granulação e fechamento por segunda intenção",
+      "Antibioticoterapia sistêmica isolada por 10-14 dias sem necessidade de abrir a ferida",
+      "Resutura imediata da ferida após limpeza com povidona-iodo e antibioticoterapia sistêmica",
+      "Tomografia para confirmar extensão e deiscência fascial antes de qualquer intervenção",
+      "Fechamento a vácuo (NPWT) imediato sem abertura prévia da ferida infectada superficial"
+    ],
+    correctIndex: 0,
+    explanation: "A ISC superficial com acúmulo de pus exige abertura e drenagem da ferida como primeira linha — o pus precisa sair para que a infecção seja controlada. Após drenagem, a ferida cicatriza por segunda intenção (granulação de baixo para cima) com curativos regulares. Antibioticoterapia sistêmica só é necessária se houver celulite extensa perilesional, sinais sistêmicos de infecção (febre, leucocitose) ou imunossupressão. A resutura imediata é contraindicada em ferida infectada."
+  },
+  {
+    question: "Cirurgião avalia ferida de colostomia revertida com presença de pus na camada profunda e deiscência fascial. Tomografia confirma abscesso perianostomótico sem acometimento de cavidade abdominal. Qual é a abordagem?",
+    imageKey: null,
+    options: [
+      "Desbridamento cirúrgico da ISC profunda com curativos ou NPWT para fechamento tardio",
+      "Antibioticoterapia sistêmica isolada: ISC profunda sem extensão abdominal responde a antibióticos",
+      "Resutura fascial de urgência com dreno aspirativo para controlar a sepse local profunda",
+      "Fechamento primário após lavagem com soro fisiológico e antibioticoterapia oral por 10 dias",
+      "Tomografia guiada com punção percutânea: todo abscesso perianostomal tem acesso percutâneo"
+    ],
+    correctIndex: 0,
+    explanation: "ISC profunda com abscesso e deiscência fascial requer desbridamento cirúrgico com remoção do tecido necrótico. A ferida é geralmente mantida aberta (ou fechada com sistema de pressão negativa — NPWT) para granulação progressiva e fechamento tardio (terciário). O NPWT (curativo de pressão negativa/KCI/VAC) acelera a granulação em feridas profundas. Apenas antibioticoterapia sem drenagem cirúrgica é insuficiente para ISC profunda com coleção."
+  },
+  {
+    question: "Paciente com imunossupressão por corticoterapia crônica apresenta cicatrização muito lenta após colectomia. Qual é o mecanismo pelo qual os corticosteroides prejudicam a cicatrização?",
+    imageKey: null,
+    options: [
+      "Inibem a fase inflamatória, reduzem angiogênese e suprimem a síntese de colágeno pelos fibroblastos",
+      "Aumentam a permeabilidade vascular, causando edema excessivo que impede a síntese de colágeno",
+      "Estimulam a proliferação bacteriana cutânea, aumentando a carga infecciosa na ferida cirúrgica",
+      "Suprimem exclusivamente os linfócitos, sem efeito sobre macrófagos e fibroblastos cicatriciais",
+      "Induzem trombocitopenia que impede a hemostasia e prolonga a fase inflamatória indefinidamente"
+    ],
+    correctIndex: 0,
+    explanation: "Os corticosteroides comprometem a cicatrização por múltiplos mecanismos: (1) Suprimem a fase inflamatória (anti-inflamatório) — reduzindo o recrutamento de macrófagos e a produção de citocinas cicatrizantes; (2) Inibem a angiogênese e a proliferação de fibroblastos; (3) Suprimem a síntese de colágeno; (4) Reduzem a epitelização. Pacientes em uso crônico de corticoides têm maior risco de ISC, deiscência de feridas e anastomoses e cicatrização prejudicada."
+  },
+  {
+    question: "Cirurgião explica ao residente a diferença entre reparo e regeneração tecidual na cicatrização de feridas em adultos. Qual é o conceito correto?",
+    imageKey: null,
+    options: [
+      "No adulto, o reparo é preferido à regeneração: o corpo fecha a ferida rapidamente com cicatriz",
+      "No adulto, a regeneração é preferida ao reparo: tecidos adultos regeneram sem formação de cicatriz",
+      "Reparo e regeneração ocorrem simultaneamente em adultos, dependendo da extensão da lesão",
+      "Regeneração ocorre em adultos apenas em tecidos de renovação rápida como epitélio intestinal",
+      "No adulto, reparo e regeneração são sinônimos, referindo-se ao mesmo processo de cicatrização"
+    ],
+    correctIndex: 0,
+    explanation: "Reparo e regeneração são conceitos distintos: regeneração é a restauração perfeita sem formação de cicatriz (ocorre em desenvolvimento embrionário, organismos inferiores e alguns tecidos como osso e fígado). Reparo é a substituição por tecido fibroso com formação de cicatriz — menos perfeito, mas mais rápido. Em adultos, a acurácia da regeneração é sacrificada pela velocidade do reparo: o organismo prefere rapidamente fechar a ferida (reparo) mesmo que o resultado não seja regeneração exata do tecido original."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+  current = 0; score = 0;
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+  document.getElementById('progressText').textContent = `Questão ${current + 1} de ${total}`;
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+  document.getElementById('qNum').textContent = `Questão ${current + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+  const imgContainer = document.getElementById('questionImg');
+  if (q.imageKey && imagens[q.imageKey]) {
+    imgContainer.innerHTML = `<img src="${imagens[q.imageKey]}" class="question-img" alt="Imagem da questão">`;
+  } else { imgContainer.innerHTML = ''; }
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correctIndex) {
+    score++;
+    opts[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.innerHTML = `<strong>✓ Correto!</strong> ${q.explanation}`;
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.correctIndex].classList.add('correct');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `<strong>✗ Incorreto.</strong> ${q.explanation}`;
+  }
+  fb.style.display = 'block';
+  const btnNext = document.getElementById('btnNext');
+  btnNext.style.display = 'inline-block';
+  btnNext.textContent = current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado';
+  document.getElementById('scoreText').textContent = `Acertos: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) { renderQuestion(); } else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('scorePct').textContent = `${pct}%`;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = questions.length - score;
+  document.getElementById('statTotal').textContent = questions.length;
+}
+
+function retryQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'block';
+}
+</script>
+</body>
+</html>
