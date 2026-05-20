@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Litíase Renal | SAIAVC2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a1a; min-height: 100vh; }
+header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 18px 30px; text-align: center; }
+header h1 { font-size: 20px; margin-bottom: 4px; font-weight: 700; }
+header p { font-size: 12px; opacity: 0.8; }
+.quiz-container { max-width: 820px; margin: 28px auto; padding: 0 16px 80px; }
+#startScreen { background: white; border-radius: 14px; padding: 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#startScreen h2 { font-size: 22px; color: #064e3b; margin-bottom: 12px; }
+#startScreen p { font-size: 14px; color: #555; margin-bottom: 8px; line-height: 1.7; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 18px 0 26px; }
+.tag { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+.btn-primary { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 13px 34px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary:hover { background: #15803d; }
+.progress-bar-bg { background: #dde3ea; border-radius: 8px; height: 8px; margin-bottom: 6px; }
+.progress-bar-fill { background: #16a34a; height: 8px; border-radius: 8px; transition: width 0.4s ease; }
+.progress-label { font-size: 12px; color: #666; margin-bottom: 18px; }
+.question-card { background: white; border-radius: 14px; padding: 28px 30px; box-shadow: 0 2px 14px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.question-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.question-number { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 1px; }
+.question-area { font-size: 11px; font-weight: 600; background: #d1fae5; color: #065f46; border-radius: 12px; padding: 2px 10px; }
+.question-text { font-family: Georgia, serif; font-size: 15px; line-height: 1.78; color: #1a1a1a; margin-bottom: 22px; }
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-btn { width: 100%; text-align: left; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 13px 16px; font-size: 13.5px; line-height: 1.5; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+.option-btn:hover:not(:disabled) { border-color: #6ee7b7; background: #f0fdf4; }
+.option-btn:disabled { cursor: default; }
+.option-letter { font-weight: 700; color: #16a34a; min-width: 22px; font-size: 13px; padding-top: 1px; }
+.option-btn.correct { border-color: #16a34a; background: #f0fdf4; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; }
+.option-btn.correct .option-letter { color: #16a34a; }
+.option-btn.wrong .option-letter { color: #dc2626; }
+.feedback-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 16px 0 8px; }
+.feedback-badge.correct-badge { background: #dcfce7; color: #15803d; }
+.feedback-badge.wrong-badge { background: #fee2e2; color: #b91c1c; }
+.explanation-box { background: #fefce8; border-left: 4px solid #eab308; border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 13px; line-height: 1.7; margin-top: 12px; color: #422006; }
+.explanation-box strong { display: block; margin-bottom: 4px; color: #713f12; }
+.btn-next { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
+.btn-next:hover { background: #15803d; }
+#resultScreen { background: white; border-radius: 14px; padding: 44px 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#resultScreen h2 { font-size: 24px; color: #064e3b; margin-bottom: 8px; }
+.score-circle { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #064e3b); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; }
+.score-pct { font-size: 28px; font-weight: 800; }
+.score-label { font-size: 11px; opacity: 0.85; }
+.result-stats { display: flex; gap: 16px; justify-content: center; margin: 20px 0; }
+.stat-box { background: #f8fafc; border-radius: 10px; padding: 14px 22px; }
+.stat-box .stat-val { font-size: 22px; font-weight: 800; }
+.stat-box .stat-desc { font-size: 12px; color: #64748b; }
+.stat-box.green .stat-val { color: #16a34a; }
+.stat-box.red .stat-val { color: #dc2626; }
+.hidden { display: none; }
+a.back-link { display: inline-block; margin-top: 20px; font-size: 13px; color: #16a34a; text-decoration: none; }
+a.back-link:hover { text-decoration: underline; }
+.back-home-fixed { position: fixed; top: 14px; left: 14px; z-index: 9999; background: rgba(255,255,255,0.96); color: #064e3b; border: 1px solid #cbd5e1; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.back-home-fixed:hover { background: #ffffff; color: #16a34a; }
+</style>
+</head>
+<body>
+<a class="back-home-fixed" href="index.html">← Voltar ao início</a>
+
+<header>
+  <h1>Litíase Renal — Casos Clínicos</h1>
+  <p>Clínica Médica · SAIAVC2 · 20 questões</p>
+</header>
+<div class="quiz-container">
+
+  <div id="startScreen">
+    <h2>Litíase Renal</h2>
+    <p>20 casos clínicos sobre tipos de cálculo, cólica nefrética, diagnóstico por imagem, tratamento clínico e urológico, e prevenção de recidivas.</p>
+    <div class="tag-row">
+      <span class="tag">Cólica nefrética</span>
+      <span class="tag">Tipos de cálculo</span>
+      <span class="tag">Diagnóstico por imagem</span>
+      <span class="tag">Tamsulosina</span>
+      <span class="tag">Litotripsia</span>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Começar</button>
+  </div>
+
+  <div id="quizScreen" class="hidden">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <div id="resultScreen" class="hidden">
+    <h2>Resultado Final</h2>
+    <div class="score-circle">
+      <span class="score-pct" id="scorePct"></span>
+      <span class="score-label">acertos</span>
+    </div>
+    <div class="result-stats">
+      <div class="stat-box green"><div class="stat-val" id="totalCorrect"></div><div class="stat-desc">Corretas</div></div>
+      <div class="stat-box red"><div class="stat-val" id="totalWrong"></div><div class="stat-desc">Erradas</div></div>
+      <div class="stat-box"><div class="stat-val">20</div><div class="stat-desc">Total</div></div>
+    </div>
+    <button class="btn-primary" onclick="restartQuiz()">Refazer</button>
+    <br><a class="back-link" href="index.html">← Voltar ao índice</a>
+  </div>
+
+</div>
+<script>
+const rawQuestions = [
+  {
+    question: "Homem, 35 anos, sem comorbidades, apresenta dor em flanco direito de início súbito, intensa, irradiada para a virilha, com náuseas e agitação. Urinálise: hematúria microscópica. Qual é o diagnóstico mais provável e o exame de imagem de escolha para confirmação?",
+    options: [
+      "Cólica nefrética; tomografia de abdome sem contraste é o padrão-ouro para detecção do cálculo",
+      "Cólica nefrética; ultrassonografia renal é o padrão-ouro por ausência de radiação ionizante",
+      "Apendicite aguda; tomografia com contraste para avaliar o apêndice e afastar complicações",
+      "Dissecção de aorta; angiotomografia de abdome e pelve para avaliar extensão da dissecção",
+      "Pielonefrite aguda; urinálise com urocultura é suficiente para confirmação diagnóstica inicial"
+    ],
+    correctIndex: 0,
+    explanation: "A cólica nefrética clássica apresenta dor lombar súbita intensa com irradiação para virilha/testículo e hematúria. A TC sem contraste (uro-TC) é o padrão-ouro com sensibilidade e especificidade próximas a 98%, identificando cálculos de qualquer composição, tamanho e localização. O USG é preferido em gestantes e crianças para evitar radiação, mas tem menor sensibilidade para cálculos ureterais."
+  },
+  {
+    question: "Mulher, 28 anos, grávida de 20 semanas, com dor lombar esquerda aguda e hematúria microscópica. Médico suspeita de litíase ureteral. Qual é o exame de imagem mais indicado neste caso?",
+    options: [
+      "Ultrassonografia renal e de vias urinárias, por ausência de radiação ionizante e boa sensibilidade para hidronefrose",
+      "Tomografia de abdome sem contraste, que é o padrão-ouro mesmo na gestação pelo benefício diagnóstico",
+      "Urografia excretora com contraste iodado, que permite localizar o cálculo e avaliar obstrução distal",
+      "Ressonância magnética de abdome, contraindicada no segundo trimestre pelo risco ao feto em desenvolvimento",
+      "Radiografia simples de abdome em decúbito, que identifica cálculos radiopacos com alta especificidade"
+    ],
+    correctIndex: 0,
+    explanation: "Na gestante, o USG é o exame inicial de escolha para litíase, pois não usa radiação ionizante. Identifica hidronefrose (sinal indireto de obstrução) e cálculos visíveis na pelve renal. A TC sem contraste tem melhor acurácia, mas é evitada na gestação pelo risco de radiação fetal. A RNM pode ser usada se o USG for inconclusivo, mas não é primeira linha. A urografia está contraindicada na gestação."
+  },
+  {
+    question: "Paciente de 40 anos com histórico de litíase renal recorrente. Análise do cálculo revela oxalato de cálcio. Urina de 24 horas: hipercalciúria (320 mg/dia), oxalúria normal, citratúria baixa. Qual medida preventiva é mais indicada para reduzir a recidiva neste caso?",
+    options: [
+      "Hidroclorotiazida para reduzir a calciúria e citrato de potássio para elevar o citrato urinário",
+      "Dieta hipercalcêmica para reduzir a absorção intestinal de oxalato por quelação intraluminal",
+      "Alopurinol em dose plena para reduzir o ácido úrico, que nucleia os cristais de oxalato de cálcio",
+      "Restrição severa de cálcio na dieta para diminuir a excreção urinária de cálcio e prevenir cristalização",
+      "Antibioticoterapia profilática com nitrofurantoína, que alcaliniza a urina e prevende recristalização"
+    ],
+    correctIndex: 0,
+    explanation: "Na hipercalciúria com baixo citrato (principal inibidor da cristalização de cálcio), a combinação de tiazídico (reduz calciúria renal) e citrato de potássio (alcaliniza a urina e quelata o cálcio livre) é a estratégia farmacológica mais eficaz. A restrição de cálcio na dieta é contraindicada, pois aumenta a absorção intestinal de oxalato e paradoxalmente eleva a oxalúria. A hidratação (> 2L/dia de urina) é a medida mais universal."
+  },
+  {
+    question: "Homem, 52 anos, obeso, com gota e histórico de cálculos renais. Análise do cálculo: ácido úrico puro. pH urinário médio 5,1. Qual é a medida preventiva mais específica para este tipo de cálculo?",
+    options: [
+      "Alcalinização urinária com citrato de potássio para manter pH urinário entre 6,0 e 6,5",
+      "Restrição de oxalato na dieta, eliminando espinafre, nozes e chocolate das refeições diárias",
+      "Suplementação de cálcio oral junto às refeições para quelação do oxalato no intestino",
+      "Litotripsia extracorpórea profilática anual para fragmentar cálculos em formação precoce",
+      "Diuréticos tiazídicos para aumentar o pH urinário por mecanismo indireto de troca iônica"
+    ],
+    correctIndex: 0,
+    explanation: "Os cálculos de ácido úrico se formam em urina ácida (pH < 5,5), pois o ácido úrico é muito pouco solúvel nesse pH. A alcalinização urinária com citrato de potássio (ou bicarbonato) para manter pH entre 6,0 e 6,5 é a principal medida preventiva e pode até dissolver cálculos de ácido úrico já formados. O alopurinol é adicionado em casos com hiperuricosúria associada. A restrição de purinas (carnes vermelhas, fructose) também é indicada."
+  },
+  {
+    question: "Mulher, 30 anos, com infecções urinárias de repetição por Proteus mirabilis. Apresenta cálculo coraliforme ocupando toda a pelve renal esquerda. Qual é a composição mais provável deste cálculo e o mecanismo de formação?",
+    options: [
+      "Estruvita (fosfato de amônio magnesiano), formado pela urease bacteriana que alcaliniza a urina",
+      "Oxalato de cálcio monoidratado, formado por hipercalciúria associada à infecção urinária recorrente",
+      "Cistina, formado por defeito genético de transporte de aminoácidos dibásicos no túbulo proximal",
+      "Ácido úrico, formado pela hiperuricosúria induzida pelo metabolismo bacteriano das purinas urinárias",
+      "Brushita (fosfato de cálcio dibásico), formado pela hipercalciúria absortiva com pH urinário ácido"
+    ],
+    correctIndex: 0,
+    explanation: "Os cálculos de estruvita (fosfato de amônio magnesiano) são tipicamente causados por bactérias produtoras de urease (Proteus, Klebsiella, Pseudomonas). A urease hidrolisa a ureia em amônia, alcalinizando a urina (pH > 7) e promovendo a precipitação de estruvita. Crescem rapidamente, formando os cálculos coraliformes que moldam a pelve renal. O tratamento exige remoção cirúrgica (nefrolitotomia percutânea) e erradicação da infecção."
+  },
+  {
+    question: "Homem, 25 anos, com litíase renal recorrente bilateral desde os 18 anos. Pai com histórico similar. Urina com aspecto turvo. Exame microscópico da urina a fresco: cristais hexagonais. Qual é o diagnóstico mais provável?",
+    options: [
+      "Cistinúria, doença autossômica recessiva com defeito no transporte de cistina e aminoácidos dibásicos",
+      "Hiperoxalúria primária tipo 1, causada por deficiência de AGT hepática com oxalúria maciça",
+      "Doença de Lesch-Nyhan, com hiperuricosúria por deficiência de HGPRT e litíase de ácido úrico",
+      "Acidose tubular renal tipo 1, com hipercalciúria e hipocitratúria causando cálculos de fosfato de cálcio",
+      "Nefropatia por IgA, que causa hematúria e depósitos de cálcio nos túbulos com litíase secundária"
+    ],
+    correctIndex: 0,
+    explanation: "A cistinúria é uma doença autossômica recessiva por defeito no transportador SLC3A1/SLC7A9, causando má reabsorção tubular de cistina, ornitina, lisina e arginina. A cistina é pouco solúvel e precipita em pH ácido. O diagnóstico é sugerido pelos cristais hexagonais na urina (patognomônicos) e confirmado pela cistinúria de 24h. O tratamento inclui hiperhidratação (urina > 3L/dia), alcalinização urinária (pH > 7) e d-penicilamina ou tiopronina."
+  },
+  {
+    question: "Paciente com cólica nefrética confirmada por TC: cálculo ureteral de 6 mm no terço distal. Sem sinais de infecção, rim contralateral funcionante. Qual é a conduta inicial mais adequada?",
+    options: [
+      "Tratamento conservador com analgesia (AINE + opioide se necessário), hidratação e tamsulosina",
+      "Ureteroscopia imediata com laser holmium para fragmentação do cálculo no terço distal do ureter",
+      "Litotripsia extracorpórea por ondas de choque (LECO) de emergência para fragmentação imediata",
+      "Nefrolitotomia percutânea de urgência para remoção direta do cálculo e alívio da obstrução",
+      "Internação imediata com sonda ureteral duplo J como medida inicial de desobstrução urgente"
+    ],
+    correctIndex: 0,
+    explanation: "Cálculos ureterais ≤ 10 mm sem complicações (infecção, rim único, dor incontrolável) têm indicação inicial de tratamento conservador. A tamsulosina (alfa-1 bloqueador) relaxa a musculatura lisa ureteral e aumenta a taxa de eliminação espontânea de cálculos distais de 4–10 mm de 50% para 70–80%. AINEs são analgésicos de primeira linha (reduzem edema ureteral). A ureteroscopia fica para falha do tratamento conservador em 4–6 semanas."
+  },
+  {
+    question: "Paciente com cólica nefrética e febre 38,9 °C, calafrios, dor lombar e urinálise com leucocitúria 3+ e nitrito positivo. TC confirma cálculo ureteral com hidronefrose moderada. Qual é a conduta imediata mais importante?",
+    options: [
+      "Desobstrução urgente (sonda duplo J ou nefrostomia percutânea) e antibioticoterapia sistêmica",
+      "Analgesia intensa com morfina e antibiótico oral, aguardando eliminação espontânea do cálculo",
+      "Litotripsia extracorpórea de urgência para fragmentar o cálculo e desobstruir o ureter infectado",
+      "Ureteroscopia rígida imediata com remoção do cálculo e lavagem da pelve renal obstruída",
+      "Hidratação venosa vigorosa e antibiograma antes de qualquer procedimento intervencionista"
+    ],
+    correctIndex: 0,
+    explanation: "Litíase com obstrução e infecção simultâneas configura pielonefrite obstrutiva, emergência urológica com risco de sepse e choque. A desobstrução urgente (nefrostomia percutânea ou cateter duplo J) é mandatória para drenar o sistema coletado infectado, associada a antibioticoterapia sistêmica de amplo espectro. A litotripsia e ureteroscopia são contraindicadas no contexto agudo infectado — aguardam a resolução da infecção."
+  },
+  {
+    question: "Homem, 45 anos, com cálculo renal de 12 mm na pelve renal direita, assintomático. TC confirma cálculo único, sem obstrução. Qual modalidade de tratamento urológico ativo é mais indicada para cálculos renais de 10 a 20 mm?",
+    options: [
+      "Litotripsia extracorpórea por ondas de choque (LECO), indicada como primeira linha para cálculos de 10 a 20 mm",
+      "Nefrolitotomia percutânea (NLP), indicada como primeira linha para cálculos renais abaixo de 20 mm",
+      "Ureteroscopia flexível com laser, indicada exclusivamente para cálculos no ureter distal e médio",
+      "Nefrolitotomia aberta convencional, indicada para cálculos entre 10 e 20 mm com menor morbidade",
+      "Conduta expectante por 12 meses, pois cálculos de até 20 mm têm alta taxa de eliminação espontânea"
+    ],
+    correctIndex: 0,
+    explanation: "Para cálculos renais de 10 a 20 mm, a LECO é a primeira opção pelas diretrizes EAU/AUA, por ser não invasiva com boa taxa de sucesso (stone-free rate ~70–80%). A NLP é a primeira opção para cálculos > 20 mm ou coraliformes. A ureteroscopia flexível (RIRS) é alternativa quando a LECO é contraindicada (marca-passo, gravidez, coagulopatia) ou em cálculos em posição desfavorável à propagação das ondas de choque."
+  },
+  {
+    question: "Mulher, 38 anos, com nefrolitíase recorrente (4 episódios em 5 anos). Urina de 24h: volume 900 mL, calciúria 180 mg/dia (normal), oxalúria 52 mg/dia (normal), citratúria 220 mg/dia (baixa), pH 5,8. Qual é o principal fator de risco identificado neste caso?",
+    options: [
+      "Hipocitratúria, o mais importante inibidor da cristalização de oxalato de cálcio no sistema coletor",
+      "Volume urinário insuficiente (< 1L/dia), que concentra todos os solutos e favorece cristalização",
+      "pH urinário baixo (5,8), que favorece exclusivamente a precipitação de cristais de ácido úrico",
+      "Hipercalciúria oculta, não detectada pela coleta de 24h por variação circadiana da excreção",
+      "Hiperuricosúria, que nucleia cristais de oxalato de cálcio mesmo com ácido úrico urinário normal"
+    ],
+    correctIndex: 0,
+    explanation: "O citrato é o principal inibidor endógeno da cristalização urinária: forma quelatos solúveis com o cálcio, reduzindo o cálcio livre disponível para cristalização com oxalato ou fosfato. Citratúria < 320 mg/dia (mulheres) ou < 450 mg/dia (homens) define hipocitratúria. No caso, o único fator alterado é a citratúria baixa. O tratamento é citrato de potássio oral, que aumenta a citratúria e alcaliniza a urina."
+  },
+  {
+    question: "Paciente com primeiro episódio de litíase renal, cálculo de oxalato de cálcio de 4 mm eliminado espontaneamente. Qual é a recomendação dietética mais importante para prevenir recidiva?",
+    options: [
+      "Aumentar a ingestão hídrica para produzir pelo menos 2 a 2,5 litros de urina por dia",
+      "Eliminar completamente o cálcio da dieta, substituindo laticínios por alimentos sem cálcio",
+      "Reduzir drasticamente o consumo de proteína vegetal, pois aumenta a oxalúria indiretamente",
+      "Aumentar o consumo de vitamina C acima de 2 g/dia, pois acidifica a urina e previne infecção",
+      "Iniciar citrato de potássio profilático desde o primeiro episódio, independente da análise de 24h"
+    ],
+    correctIndex: 0,
+    explanation: "A hiperhidratação é a medida preventiva mais eficaz e universal para todos os tipos de litíase. Produzir > 2,0–2,5 L de urina por dia dilui todos os litógenos e reduz a supersaturação urinária. A restrição de cálcio na dieta está contraindicada, pois aumenta a absorção intestinal de oxalato. A análise de urina de 24h deve ser feita antes de qualquer farmacoterapia específica."
+  },
+  {
+    question: "Homem, 55 anos, com litíase renal bilateral recorrente e DRC G2. TC revela cálculos bilaterais com aspecto denso e calcificações parenquimatosas (nefrocalcinose). Exames: cálcio sérico 11,4 mg/dL, PTH 180 pg/mL, fósforo 2,1 mg/dL. Qual diagnóstico subjacente deve ser investigado?",
+    options: [
+      "Hiperparatireoidismo primário, com hipercalcemia, PTH elevado inapropriadamente e hipofosforemia",
+      "Hiperparatireoidismo secundário à DRC, com hipocalcemia e PTH elevado de forma compensatória",
+      "Sarcoidose, com hipercalcemia por produção extra-renal de calcitriol pelos granulomas pulmonares",
+      "Intoxicação por vitamina D, com hipercalcemia por hiperabsorção intestinal de cálcio e fósforo",
+      "Mieloma múltiplo, com hipercalcemia por reabsorção óssea osteoclástica mediada pelas plasmócitos"
+    ],
+    correctIndex: 0,
+    explanation: "Hipercalcemia + PTH elevado inapropriadamente (deveria estar suprimido na hipercalcemia) + hipofosforemia (o PTH aumenta a excreção de fósforo) = hiperparatireoidismo primário. É a causa mais comum de hipercalcemia ambulatorial e predispõe à hipercalciúria, nefrocalcinose e litíase recorrente de cálcio. O tratamento definitivo é a paratireoidectomia, indicada na presença de nefrolitíase, nefrocalcinose ou osteoporose."
+  },
+  {
+    question: "Mulher, 32 anos, com dor lombar intensa e febre há 2 dias. TC: rim esquerdo aumentado, com hipodensidade cortical sugestiva de abscesso, e cálculo de 8 mm no ureter proximal. Qual é a conduta correta?",
+    options: [
+      "Drenagem do abscesso renal, desobstrução ureteral com duplo J e antibioticoterapia endovenosa",
+      "Ureteroscopia imediata para remoção do cálculo e lavagem da pelve renal com antibiótico local",
+      "LECO de urgência para fragmentar o cálculo e permitir drenagem do sistema pielocalicial infectado",
+      "Antibioticoterapia endovenosa isolada por 14 dias, aguardando resolução espontânea do abscesso",
+      "Nefrectomia esquerda de urgência, pois a presença de abscesso com obstrução indica rim sem função"
+    ],
+    correctIndex: 0,
+    explanation: "Abscesso renal associado a obstrução litiásica é emergência que exige abordagem dupla simultânea: drenagem do abscesso (percutânea guiada por imagem quando > 3–5 cm ou sem resposta ao antibiótico) e desobstrução ureteral (cateter duplo J ou nefrostomia percutânea), além de antibioticoterapia endovenosa de amplo espectro. A LECO e ureteroscopia são contraindicadas no contexto infeccioso ativo."
+  },
+  {
+    question: "Menino, 8 anos, com cólica nefrética e cálculo de 3 mm eliminado espontaneamente. Pai tem litíase recorrente por cistinúria. Qual exame é mais adequado para triagem de cistinúria nesta criança?",
+    options: [
+      "Teste do cianeto-nitroprussiato na urina e dosagem de cistina em urina de 24 horas",
+      "Dosagem sérica de cistina e metionina, que estão elevadas em portadores homozigotos da doença",
+      "Biópsia renal com coloração de ácido periódico de Schiff para depósitos de cistina intratubulares",
+      "Genoma completo por sequenciamento de nova geração para identificar mutação nos genes SLC3A1/7A9",
+      "pH urinário em série de 5 amostras, pois a cistinúria causa alcalose tubular com pH acima de 7,5"
+    ],
+    correctIndex: 0,
+    explanation: "O diagnóstico de cistinúria é feito pela combinação do teste qualitativo de cianeto-nitroprussiato (triagem — reação púrpura positiva) e confirmação com cistinúria de 24h (> 250 mg/dia em adultos; valores adaptados para crianças por kg). Os cristais hexagonais na urina a fresco são altamente sugestivos. O sequenciamento genético confirma o subtipo, mas não é necessário para diagnóstico clínico inicial."
+  },
+  {
+    question: "Paciente em tratamento com indinavir (inibidor de protease para HIV) apresenta cólica nefrética de repetição. TC sem contraste não evidencia cálculos. Urinálise com pH 5,2 e cristais amorfos. Qual é a melhor conduta diagnóstica?",
+    options: [
+      "TC sem contraste não detecta cálculos de indinavir; solicitar TC com contraste ou ultrassom para confirmar",
+      "Repetir a TC sem contraste com protocolo de baixa dose, que tem maior resolução para cálculos de indinavir",
+      "Realizar ureteroscopia diagnóstica direta, pois cálculos de indinavir são visíveis apenas endoscopicamente",
+      "Solicitar urinálise seriada com cultura, pois cristais de indinavir indicam infecção bacteriana associada",
+      "Pedir cintilografia renal com DMSA para quantificar a obstrução e localizar o nível funcional"
+    ],
+    correctIndex: 0,
+    explanation: "Os cálculos de indinavir são radiotransparentes à TC sem contraste (não são detectados pelo coeficiente de atenuação de Hounsfield). A TC com contraste (urografia por TC) ou o USG podem evidenciar hidronefrose e/ou preenchimento do sistema coletor. O diagnóstico definitivo muitas vezes é clínico e farmacológico. A conduta inclui hiperhidratação, acidificação urinária e, se possível, troca do esquema antirretroviral."
+  },
+  {
+    question: "Mulher, 45 anos, após cirurgia bariátrica (bypass gástrico em Y de Roux) há 2 anos, apresenta litíase renal por oxalato de cálcio recorrente. Qual é o mecanismo pelo qual a cirurgia bariátrica predispõe à hiperoxalúria?",
+    options: [
+      "Má absorção de gorduras aumenta a gordura intraluminal, que liga o cálcio e deixa o oxalato livre para absorção colônica",
+      "A redução do volume gástrico diminui a secreção de ácido e eleva o pH intestinal, favorecendo absorção de oxalato",
+      "A exclusão do duodeno reduz a absorção de vitamina D, causando hipocalcemia e hiperoxalúria compensatória",
+      "O aumento do trânsito intestinal pelo bypass reduz o tempo de contato com cálcio e eleva a oxalúria",
+      "A ressecção do íleo terminal no bypass elimina receptores de reabsorção de oxalato, causando hiperoxalúria"
+    ],
+    correctIndex: 0,
+    explanation: "Após bypass gástrico, a má absorção de gorduras aumenta os ácidos graxos livres no cólon. Eles se ligam ao cálcio intraluminal (que normalmente quelaria o oxalato), liberando o oxalato para absorção colônica aumentada (hiperoxalúria entérica). O tratamento inclui dieta pobre em oxalato, suplementação de cálcio oral junto às refeições (para quelação colônica) e citrato de potássio."
+  },
+  {
+    question: "Homem, 60 anos, com litíase renal e gota. Exames: ácido úrico sérico 9,8 mg/dL, uricosúria de 24h 980 mg/dia. Qual é o medicamento de escolha para reduzir a produção de ácido úrico e prevenir recidiva de cálculos de ácido úrico?",
+    options: [
+      "Alopurinol, que inibe a xantina oxidase e reduz a síntese endógena de ácido úrico",
+      "Probenecida, que aumenta a excreção renal de urato e reduz o ácido úrico sérico de forma uricosúrica",
+      "Febuxostate, reservado exclusivamente para cálculos de estruvita com hiperuricosúria associada",
+      "Rasburicase, que degrada o ácido úrico circulante e é indicada para litíase gotosa crônica",
+      "Colchicina profilática contínua, que previne a nucleação de cristais de ácido úrico no sistema coletor"
+    ],
+    correctIndex: 0,
+    explanation: "O alopurinol inibe a xantina oxidase, enzima que converte hipoxantina → xantina → ácido úrico. Reduz tanto o ácido úrico sérico quanto a uricosúria, sendo a primeira linha para prevenção de litíase de ácido úrico com hiperuricosúria. O febuxostato é alternativa ao alopurinol (também inibidor da xantina oxidase), mas não é exclusivo para estruvita. A probenecida é uricosúrica e contraindicada em pacientes com nefrolitíase por ácido úrico."
+  },
+  {
+    question: "Paciente de 35 anos com litíase renal bilateral recorrente, acidose metabólica hiperclorêmica, potássio sérico 3,1 mEq/L e pH urinário que não cai abaixo de 6,0 mesmo em jejum prolongado. Qual é o diagnóstico mais provável?",
+    options: [
+      "Acidose tubular renal tipo 1 (distal), com incapacidade de acidificar a urina e hipocitratúria grave",
+      "Acidose tubular renal tipo 2 (proximal), com perda de bicarbonato e formação de cálculos de cistina",
+      "Síndrome de Fanconi, com perda tubular generalizada de glicose, aminoácidos, fosfato e bicarbonato",
+      "Hiperaldosteronismo primário, com alcalose metabólica, hipocalemia e litíase de fosfato de cálcio",
+      "Diarreia crônica secretora, que causa hipocalemia e acidose metabólica por perda de bicarbonato fecal"
+    ],
+    correctIndex: 0,
+    explanation: "A ATR tipo 1 (distal) é causada por deficiência na H+-ATPase do ducto coletor, impedindo a acidificação urinária (pH sempre > 5,5 mesmo em acidose sistêmica). Causa hipocitratúria grave (citrato é reabsorvido em meio ácido), hipercalciúria e alcalinização da urina — ambiente ideal para precipitar fosfato de cálcio. Resulta em nefrocalcinose e litíase de fosfato de cálcio recorrente. O tratamento é citrato de potássio, que corrige a acidose e a hipocitratúria."
+  },
+  {
+    question: "Mulher, 65 anos, com litíase renal e osteoporose, sem uso de suplemento de vitamina D. Exames: cálcio urinário 380 mg/24h, cálcio sérico normal, PTH normal, vitamina D 25-OH 32 ng/mL. Qual é o tipo de hipercalciúria presente?",
+    options: [
+      "Hipercalciúria renal, por defeito tubular na reabsorção de cálcio com PTH normal e calciúria aumentada",
+      "Hipercalciúria absortiva tipo 1, por aumento da absorção intestinal de cálcio com supressão do PTH",
+      "Hipercalciúria reabsortiva, por hiperparatireoidismo primário com PTH elevado inapropriadamente",
+      "Hipercalciúria por imobilismo, por aumento da reabsorção óssea osteoclástica com cálcio sérico alto",
+      "Hipercalciúria absortiva tipo 2, dependente da ingestão de cálcio e que normaliza em dieta hipocalcêmica"
+    ],
+    correctIndex: 0,
+    explanation: "A hipercalciúria renal ocorre por defeito intrínseco na reabsorção tubular de cálcio. O PTH é normal ou levemente elevado (resposta ao cálcio perdido), a vitamina D está normal e o cálcio sérico é normal. Difere da hipercalciúria absortiva (PTH suprimido, dependente da dieta) e da reabsortiva (PTH e cálcio sérico elevados). O tratamento da hipercalciúria renal é com tiazídico, que aumenta a reabsorção tubular de cálcio."
+  },
+  {
+    question: "Paciente com cólica nefrética recebe cetorolaco 30 mg IV com alívio parcial da dor. Médico considera associar morfina. Qual é a vantagem do AINE (cetorolaco) em relação ao opioide no manejo da dor da cólica nefrética?",
+    options: [
+      "O AINE reduz a produção de prostaglandinas, diminuindo o espasmo ureteral e o edema da mucosa",
+      "O AINE tem ação central mais potente que a morfina, bloqueando a percepção da dor renal visceral",
+      "O AINE não causa dependência e tem ação analgésica superior ao opioide para qualquer dor visceral",
+      "O AINE aumenta a diurese e a velocidade de eliminação do cálculo, diferente dos opioides",
+      "O AINE bloqueia os receptores kappa periféricos no ureter, eliminando a transmissão nociceptiva local"
+    ],
+    correctIndex: 0,
+    explanation: "Na cólica nefrética, os AINEs são analgésicos de primeira linha porque inibem a produção de prostaglandinas (especialmente PGE2), que causam vasodilatação da arteríola aferente (aumentando a pressão intrapélvica) e espasmo do músculo liso ureteral. Ao bloquear esses mediadores, o AINE trata a fisiopatologia da dor. Os opioides têm ação analgésica central eficaz, mas causam náuseas, retenção urinária e podem ser necessários quando o AINE é contraindicado (DRC, gastropatia)."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+const questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+let current = 0, correct = 0, wrong = 0, answered = false;
+
+function startQuiz() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D','E'];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Questão ${current + 1} de ${questions.length}`;
+  document.getElementById('questionCard').innerHTML = `
+    <div class="question-meta">
+      <span class="question-number">Questão ${current + 1}</span>
+      <span class="question-area">Litíase Renal</span>
+    </div>
+    <div class="question-text">${q.question}</div>
+    <div class="options-list">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" onclick="selectAnswer(${i})" id="opt${i}">
+          <span class="option-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('')}
+    </div>
+    <div id="feedback" style="display:none"></div>
+  `;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+  const isCorrect = idx === q.correctIndex;
+  buttons[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correctIndex].classList.add('correct');
+  if (isCorrect) correct++; else wrong++;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.innerHTML = `
+    <div class="feedback-badge ${isCorrect ? 'correct-badge' : 'wrong-badge'}">${isCorrect ? '✓ Correto!' : '✗ Incorreto'}</div>
+    <div class="explanation-box"><strong>Explicação:</strong>${q.explanation}</div>
+    <button class="btn-next" onclick="nextQuestion()">${current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado'}</button>
+  `;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) renderQuestion();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  const pct = Math.round((correct / questions.length) * 100);
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('totalCorrect').textContent = correct;
+  document.getElementById('totalWrong').textContent = wrong;
+}
+
+function restartQuiz() {
+  current = 0; correct = 0; wrong = 0;
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+</script>
+</body>
+</html>
