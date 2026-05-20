@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIAVC2 — Quizzes de Casos Clínicos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; padding: 32px 20px 48px; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header-inner { display: inline-block; background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); border-radius: 18px; padding: 32px 48px; color: white; box-shadow: 0 6px 28px rgba(30,58,95,0.28); }
+  .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .header p { font-size: 15px; opacity: 0.88; }
+  .badges { display: flex; justify-content: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,0.18); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+
+  .section-label { text-align: center; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 18px; max-width: 1000px; margin-left: auto; margin-right: auto; padding: 6px 0; border-radius: 8px; }
+  .section-label.clinica { color: #064e3b; background: #d1fae5; }
+  .section-label.cirurgia { color: #7c2d12; background: #ffedd5; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; max-width: 1000px; margin: 0 auto 32px; }
+
+  .card { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; transition: transform .18s, box-shadow .18s; text-decoration: none; display: flex; flex-direction: column; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
+  .card-top { padding: 18px 20px 14px; flex: 1; }
+  .card-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+  .card-title { font-size: 16px; font-weight: 700; color: #1a202c; margin-bottom: 5px; }
+  .card-desc { font-size: 13px; color: #718096; line-height: 1.5; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px 14px; }
+  .q-count { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .q-green { background: #d1fae5; color: #065f46; }
+  .q-orange { background: #ffedd5; color: #9a3412; }
+  .card-arrow { color: #a0aec0; font-size: 18px; font-weight: 700; }
+
+  .divider { max-width: 1000px; margin: 8px auto 24px; border: none; border-top: 2px dashed #e2e8f0; }
+
+  .footer { text-align: center; margin-top: 36px; color: #a0aec0; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>SAIAVC2 — Casos Clínicos</h1>
+    <p>Clínica Médica e Cirurgia • Prova Final</p>
+    <div class="badges">
+      <span class="badge">10 quizzes</span>
+      <span class="badge">200 questões</span>
+      <span class="badge">Casos clínicos</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-label clinica">🩺 Clínica Médica</div>
+<div class="grid">
+
+  <a class="card" href="quiz_drge.html">
+    <div class="card-top">
+      <span class="card-icon">🔥</span>
+      <div class="card-title">DRGE</div>
+      <div class="card-desc">Fisiopatologia, classificação de Los Angeles, esôfago de Barrett, tratamento com IBP e indicações cirúrgicas.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_drc.html">
+    <div class="card-top">
+      <span class="card-icon">🫘</span>
+      <div class="card-title">Doença Renal Crônica</div>
+      <div class="card-desc">Classificação KDIGO, etiologias, complicações (anemia, hiperparatireoidismo, hipercalemia) e indicações de diálise.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_litiase_renal.html">
+    <div class="card-top">
+      <span class="card-icon">🪨</span>
+      <div class="card-title">Litíase Renal</div>
+      <div class="card-desc">Tipos de cálculo, cólica nefrética, diagnóstico por imagem, tratamento (tamsulosina, litotripsia) e prevenção.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_cushing.html">
+    <div class="card-top">
+      <span class="card-icon">🧬</span>
+      <div class="card-title">Síndrome de Cushing</div>
+      <div class="card-desc">Etiologias ACTH-dependentes e independentes, rastreio (cortisol urinário, teste dexametasona), localização e tratamento.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_anemia_falciforme.html">
+    <div class="card-top">
+      <span class="card-icon">🔴</span>
+      <div class="card-title">Anemia Falciforme</div>
+      <div class="card-desc">Fisiopatologia da HbS, crises (vaso-oclusiva, sequestro esplênico, aplástica), complicações crônicas e hidroxiureia.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_anemias.html">
+    <div class="card-top">
+      <span class="card-icon">🩸</span>
+      <div class="card-title">Anemias</div>
+      <div class="card-desc">Microcíticas (ferropriva, de doença crônica), macrocíticas (B12, folato) e hemolíticas — diagnóstico diferencial e tratamento.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-green">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+</div>
+
+<hr class="divider">
+<div class="section-label cirurgia">🔪 Cirurgia</div>
+<div class="grid">
+
+  <a class="card" href="quiz_drenos_e_sondas.html">
+    <div class="card-top">
+      <span class="card-icon">🧴</span>
+      <div class="card-title">Drenos e Sondas</div>
+      <div class="card-desc">Tipos de drenos (Penrose, Blake, Portovac), sondas (Foley, nasogástrica, nasoenteral), indicações, cuidados e complicações.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-orange">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_intestino_delgado.html">
+    <div class="card-top">
+      <span class="card-icon">🔗</span>
+      <div class="card-title">Cirurgia do Intestino Delgado</div>
+      <div class="card-desc">Bases técnicas, tipos de anastomose, ressecções, síndrome do intestino curto e fístulas enterocutâneas.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-orange">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_estomas_intestinais.html">
+    <div class="card-top">
+      <span class="card-icon">🔵</span>
+      <div class="card-title">Estomas Intestinais</div>
+      <div class="card-desc">Colostomia, ileostomia, urostomia — indicações, confecção, complicações (prolapso, hérnia paraestomal, necrose) e reversão.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-orange">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+  <a class="card" href="quiz_isc.html">
+    <div class="card-top">
+      <span class="card-icon">🦠</span>
+      <div class="card-title">Infecção de Sítio Cirúrgico</div>
+      <div class="card-desc">Classificação (superficial, profunda, órgão/espaço), fatores de risco, profilaxia antibiótica e classificação de feridas.</div>
+    </div>
+    <div class="card-footer">
+      <span class="q-count q-orange">20 questões</span>
+      <span class="card-arrow">›</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">SAIAVC2 · Clínica Médica e Cirurgia · 10 quizzes · 200 questões</div>
+
+</body>
+</html>
