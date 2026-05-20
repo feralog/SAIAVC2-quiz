@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Síndrome de Cushing | SAIAVC2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a1a; min-height: 100vh; }
+header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 18px 30px; text-align: center; }
+header h1 { font-size: 20px; margin-bottom: 4px; font-weight: 700; }
+header p { font-size: 12px; opacity: 0.8; }
+.quiz-container { max-width: 820px; margin: 28px auto; padding: 0 16px 80px; }
+#startScreen { background: white; border-radius: 14px; padding: 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#startScreen h2 { font-size: 22px; color: #064e3b; margin-bottom: 12px; }
+#startScreen p { font-size: 14px; color: #555; margin-bottom: 8px; line-height: 1.7; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 18px 0 26px; }
+.tag { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+.btn-primary { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 13px 34px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary:hover { background: #15803d; }
+.progress-bar-bg { background: #dde3ea; border-radius: 8px; height: 8px; margin-bottom: 6px; }
+.progress-bar-fill { background: #16a34a; height: 8px; border-radius: 8px; transition: width 0.4s ease; }
+.progress-label { font-size: 12px; color: #666; margin-bottom: 18px; }
+.question-card { background: white; border-radius: 14px; padding: 28px 30px; box-shadow: 0 2px 14px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.question-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.question-number { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 1px; }
+.question-area { font-size: 11px; font-weight: 600; background: #d1fae5; color: #065f46; border-radius: 12px; padding: 2px 10px; }
+.question-text { font-family: Georgia, serif; font-size: 15px; line-height: 1.78; color: #1a1a1a; margin-bottom: 22px; }
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-btn { width: 100%; text-align: left; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 13px 16px; font-size: 13.5px; line-height: 1.5; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+.option-btn:hover:not(:disabled) { border-color: #6ee7b7; background: #f0fdf4; }
+.option-btn:disabled { cursor: default; }
+.option-letter { font-weight: 700; color: #16a34a; min-width: 22px; font-size: 13px; padding-top: 1px; }
+.option-btn.correct { border-color: #16a34a; background: #f0fdf4; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; }
+.option-btn.correct .option-letter { color: #16a34a; }
+.option-btn.wrong .option-letter { color: #dc2626; }
+.feedback-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 16px 0 8px; }
+.feedback-badge.correct-badge { background: #dcfce7; color: #15803d; }
+.feedback-badge.wrong-badge { background: #fee2e2; color: #b91c1c; }
+.explanation-box { background: #fefce8; border-left: 4px solid #eab308; border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 13px; line-height: 1.7; margin-top: 12px; color: #422006; }
+.explanation-box strong { display: block; margin-bottom: 4px; color: #713f12; }
+.btn-next { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
+.btn-next:hover { background: #15803d; }
+#resultScreen { background: white; border-radius: 14px; padding: 44px 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#resultScreen h2 { font-size: 24px; color: #064e3b; margin-bottom: 8px; }
+.score-circle { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #064e3b); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; }
+.score-pct { font-size: 28px; font-weight: 800; }
+.score-label { font-size: 11px; opacity: 0.85; }
+.result-stats { display: flex; gap: 16px; justify-content: center; margin: 20px 0; }
+.stat-box { background: #f8fafc; border-radius: 10px; padding: 14px 22px; }
+.stat-box .stat-val { font-size: 22px; font-weight: 800; }
+.stat-box .stat-desc { font-size: 12px; color: #64748b; }
+.stat-box.green .stat-val { color: #16a34a; }
+.stat-box.red .stat-val { color: #dc2626; }
+.hidden { display: none; }
+a.back-link { display: inline-block; margin-top: 20px; font-size: 13px; color: #16a34a; text-decoration: none; }
+a.back-link:hover { text-decoration: underline; }
+.back-home-fixed { position: fixed; top: 14px; left: 14px; z-index: 9999; background: rgba(255,255,255,0.96); color: #064e3b; border: 1px solid #cbd5e1; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.back-home-fixed:hover { background: #ffffff; color: #16a34a; }
+</style>
+</head>
+<body>
+<a class="back-home-fixed" href="index.html">← Voltar ao início</a>
+
+<header>
+  <h1>Síndrome de Cushing — Casos Clínicos</h1>
+  <p>Clínica Médica · SAIAVC2 · 20 questões</p>
+</header>
+<div class="quiz-container">
+
+  <div id="startScreen">
+    <h2>Síndrome de Cushing</h2>
+    <p>20 casos clínicos sobre etiologias ACTH-dependentes e independentes, rastreio bioquímico, localização do tumor e abordagem terapêutica.</p>
+    <div class="tag-row">
+      <span class="tag">Doença de Cushing</span>
+      <span class="tag">ACTH-dependente</span>
+      <span class="tag">Cortisol urinário</span>
+      <span class="tag">Teste dexametasona</span>
+      <span class="tag">Cirurgia transesfenoidal</span>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Começar</button>
+  </div>
+
+  <div id="quizScreen" class="hidden">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <div id="resultScreen" class="hidden">
+    <h2>Resultado Final</h2>
+    <div class="score-circle">
+      <span class="score-pct" id="scorePct"></span>
+      <span class="score-label">acertos</span>
+    </div>
+    <div class="result-stats">
+      <div class="stat-box green"><div class="stat-val" id="totalCorrect"></div><div class="stat-desc">Corretas</div></div>
+      <div class="stat-box red"><div class="stat-val" id="totalWrong"></div><div class="stat-desc">Erradas</div></div>
+      <div class="stat-box"><div class="stat-val">20</div><div class="stat-desc">Total</div></div>
+    </div>
+    <button class="btn-primary" onclick="restartQuiz()">Refazer</button>
+    <br><a class="back-link" href="index.html">← Voltar ao índice</a>
+  </div>
+
+</div>
+<script>
+const rawQuestions = [
+  {
+    question: "Mulher, 38 anos, com ganho ponderal centrípeto progressivo, estrias violáceas abdominais largas, hipertensão, hiperglicemia e irregularidade menstrual há 18 meses. Qual é a causa endógena mais comum da Síndrome de Cushing e qual exame laboratorial confirma a hipersecreção de cortisol?",
+    options: [
+      "Doença de Cushing (adenoma hipofisário produtor de ACTH); cortisol urinário livre de 24h elevado",
+      "Adenoma adrenal produtor de cortisol; ACTH sérico elevado com cortisol urinário aumentado",
+      "Tumor ectópico produtor de ACTH; cortisol sérico matinal como único exame de rastreio necessário",
+      "Hiperplasia adrenal bilateral; dexametasona 1 mg noturna com cortisol matinal suprimido abaixo de 1,8",
+      "Carcinoma adrenocortical; RNM de adrenal como primeiro exame após suspeita clínica do quadro"
+    ],
+    correctIndex: 0,
+    explanation: "A Doença de Cushing (adenoma hipofisário produtor de ACTH) é a causa endógena mais comum, responsável por 60 a 70% dos casos. O rastreio bioquímico inclui: cortisol urinário livre de 24h (≥ 3 vezes o limite superior), cortisol salivar noturno elevado (≥ 2 amostras) ou teste de supressão com 1 mg de dexametasona (cortisol pós-supressão > 1,8 µg/dL). São necessários pelo menos dois exames positivos para confirmar o hipercortisolismo."
+  },
+  {
+    question: "Paciente com Síndrome de Cushing confirmada bioquimicamente. ACTH sérico: 85 pg/mL (referência: 10–46 pg/mL). Com base neste resultado, qual é a classificação etiológica mais provável?",
+    options: [
+      "Causa ACTH-dependente: adenoma hipofisário (Doença de Cushing) ou secreção ectópica de ACTH",
+      "Causa ACTH-independente: adenoma adrenal produtor de cortisol com supressão do ACTH",
+      "Causa ACTH-independente: hiperplasia adrenal macronodular bilateral com ACTH indetectável",
+      "Causa exógena: uso oculto de glicocorticoide com elevação paradoxal do ACTH endógeno",
+      "Causa mista: tumoral hipofisário e adrenal simultâneos causando ACTH moderadamente elevado"
+    ],
+    correctIndex: 0,
+    explanation: "O ACTH sérico é o primeiro passo após confirmar o hipercortisolismo. ACTH suprimido (< 10 pg/mL) indica causa ACTH-independente (adrenal autônoma). ACTH normal ou elevado (> 20 pg/mL) indica causa ACTH-dependente — hipofisária (Doença de Cushing) ou ectópica. Com ACTH de 85 pg/mL, a causa é ACTH-dependente e o próximo passo é diferenciar hipofisária de ectópica (teste de supressão com dexametasona em dose alta, CRH e cateterismo dos seios petrosos)."
+  },
+  {
+    question: "Paciente com hipercortisolismo ACTH-dependente confirmado. Teste de supressão com 8 mg de dexametasona (dose alta): cortisol suprimido em 68% em relação ao basal. RM de sela: microadenoma hipofisário de 6 mm. Qual é a interpretação correta do teste?",
+    options: [
+      "Supressão maior que 50% com dose alta sugere Doença de Cushing hipofisária, confirmando a RM",
+      "Supressão de 68% indica tumor ectópico, pois produtores ectópicos suprimem mais que os hipofisários",
+      "Supressão de qualquer grau invalida o diagnóstico de Cushing, indicando Pseudo-Cushing funcional",
+      "Supressão maior que 50% com dose alta descarta Cushing e aponta para síndrome metabólica isolada",
+      "O teste de dose alta não tem valor diagnóstico; apenas o cateterismo dos seios petrosos é confiável"
+    ],
+    correctIndex: 0,
+    explanation: "No teste de supressão com dexametasona em dose alta (8 mg), os adenomas hipofisários (Doença de Cushing) conservam alguma sensibilidade ao feedback negativo e suprimem o cortisol em > 50% do basal. Os tumores ectópicos produtores de ACTH são, em geral, resistentes à supressão. A supressão de 68% associada ao microadenoma na RM indica Doença de Cushing hipofisária. O cateterismo dos seios petrosos é reservado para casos com RM negativa ou resultado discordante."
+  },
+  {
+    question: "Mulher, 42 anos, em investigação de Cushing. Cortisol urinário de 24h: 280 µg/24h (VR < 100). ACTH: 12 pg/mL. TC de adrenal: nódulo sólido de 3,5 cm à direita. Qual é o diagnóstico mais provável e o tratamento de escolha?",
+    options: [
+      "Adenoma adrenal produtor de cortisol (ACTH-independente); adrenalectomia laparoscópica unilateral",
+      "Doença de Cushing com incidentaloma adrenal não funcionante; cirurgia transesfenoidal como tratamento",
+      "Carcinoma adrenocortical; ressecção cirúrgica aberta com linfadenectomia e mitotane adjuvante",
+      "Hiperplasia adrenal macronodular bilateral; adrenalectomia bilateral para controle do hipercortisolismo",
+      "Secreção ectópica de ACTH com metástase adrenal; quimioterapia e inibidores de esteroidogênese"
+    ],
+    correctIndex: 0,
+    explanation: "ACTH suprimido (12 pg/mL, abaixo de 20 pg/mL) + nódulo adrenal unilateral = causa ACTH-independente por adenoma adrenal. O tratamento de escolha é a adrenalectomia laparoscópica unilateral. Após a cirurgia, o eixo hipotálamo-hipofisário suprimido pelo excesso de cortisol leva a insuficiência adrenal contralateral transitória, exigindo reposição de glicocorticoide no pós-operatório até recuperação do eixo (meses a 1 ano)."
+  },
+  {
+    question: "Homem, 55 anos, com Cushing de instalação rápida (3 meses), hipocalemia grave (K 2,8 mEq/L), hiperpigmentação cutânea e ACTH > 300 pg/mL. TC de tórax evidencia nódulo pulmonar de 2 cm. Qual é a etiologia mais provável?",
+    options: [
+      "Secreção ectópica de ACTH por tumor carcinoide pulmonar ou carcinoma de pequenas células",
+      "Doença de Cushing hipofisária com macroadenoma invasivo e hiperpigmentação por excesso de ACTH",
+      "Adenoma adrenal bilateral com produção autônoma de cortisol e ACTH elevado por feedback paradoxal",
+      "Carcinoma adrenocortical com produção ectópica de ACTH pelo próprio tumor adrenal maligno",
+      "Síndrome de Nelson pós-adrenalectomia bilateral com crescimento do adenoma hipofisário residual"
+    ],
+    correctIndex: 0,
+    explanation: "Instalação rápida + ACTH muito elevado (> 300 pg/mL) + hipocalemia grave (efeito mineralocorticoide do cortisol em excesso extremo) + nódulo pulmonar = síndrome de ACTH ectópico. Carcinoma de pequenas células do pulmão e tumores carcinoides são as causas mais comuns. A hiperpigmentação decorre do excesso de ACTH e MSH (derivados do POMC). O Cushing ectópico é tipicamente mais grave e de evolução mais rápida que a Doença de Cushing."
+  },
+  {
+    question: "Mulher, 35 anos, com Cushing confirmado por cortisol urinário elevado e falha de supressão ao teste de 1 mg. ACTH 62 pg/mL. RM de sela não identifica lesão hipofisária. Qual é o próximo passo para localizar a fonte do ACTH?",
+    options: [
+      "Cateterismo dos seios petrosos inferiores com CRH para gradiente central-periférico de ACTH",
+      "Repetir a RM de sela com contraste gadolínio e cortes de 1 mm para identificar microadenoma oculto",
+      "PET-CT com 18F-FDG de corpo inteiro para rastrear fonte ectópica com alta sensibilidade e especificidade",
+      "Cintilografia com octreotídeo (SRS) como único exame antes de qualquer intervenção cirúrgica",
+      "TC de tórax e abdome de rotina como primeiro exame complementar, substituindo o cateterismo"
+    ],
+    correctIndex: 0,
+    explanation: "Quando a RM de sela é negativa em Cushing ACTH-dependente, o cateterismo dos seios petrosos inferiores (CSPI) com estímulo de CRH é o padrão-ouro para diferenciar Doença de Cushing de secreção ectópica. Gradiente central/periférico ≥ 2 (basal) ou ≥ 3 (pós-CRH) indica fonte hipofisária. Gradiente < 2 indica fonte ectópica. Após confirmar a origem hipofisária sem lesão visível na RM, indica-se exploração cirúrgica transesfenoidal."
+  },
+  {
+    question: "Paciente com Doença de Cushing confirmada por RM (microadenoma 7 mm) e CSPI. Indicada cirurgia transesfenoidal. No pós-operatório imediato, cortisol sérico cai para 1,2 µg/dL. Qual é a interpretação e a conduta?",
+    options: [
+      "Cura cirúrgica; iniciar reposição de hidrocortisona pelo risco de insuficiência adrenal pós-operatória",
+      "Falha cirúrgica; manter o paciente sem corticoide e solicitar cortisol urinário após 6 semanas",
+      "Cura cirúrgica; nenhum tratamento adicional, pois o eixo adrenal se recupera espontaneamente em dias",
+      "Recidiva precoce; indicar radioterapia hipofisária em estereotaxia no prazo de 72 horas",
+      "Pseudo-cura por supressão transitória; aguardar cortisol normalizar antes de confirmar a remissão"
+    ],
+    correctIndex: 0,
+    explanation: "Cortisol pós-operatório < 2 µg/dL (hipocortisolismo) nas primeiras 24 a 48h após transesfenoidal é o melhor preditor de cura cirúrgica. O eixo adrenal contralateral foi suprimido cronicamente pelo excesso de cortisol e não responde imediatamente. A reposição de hidrocortisona (15–25 mg/dia) é obrigatória até que o eixo hipotálamo-hipofisário-adrenal se recupere, processo que pode durar 6 a 18 meses."
+  },
+  {
+    question: "Mulher, 48 anos, obesa, com hipertensão, hiperglicemia e depressão. Médico suspeita de Síndrome de Cushing. Teste de supressão com 1 mg de dexametasona: cortisol 2,9 µg/dL. Qual condição pode causar falso-positivo neste teste?",
+    options: [
+      "Uso de fenitoína, carbamazepina ou rifampicina, que aceleram o metabolismo da dexametasona",
+      "Uso de contraceptivo oral, que eleva a CBG e aumenta o cortisol total medido artificialmente",
+      "Obesidade isolada, que reduz a clearance renal do cortisol e eleva o cortisol urinário de 24h",
+      "Depressão maior, que causa hipercortisolismo funcional com ACTH e cortisol suprimíveis ao teste",
+      "Resistência periférica ao cortisol, com cortisol total elevado mas cortisol livre normal e assintomático"
+    ],
+    correctIndex: 0,
+    explanation: "Indutores enzimáticos do citocromo CYP3A4 (fenitoína, carbamazepina, rifampicina, fenobarbital) aceleram o metabolismo da dexametasona, reduzindo seu nível sérico abaixo do necessário para suprimir o eixo. O resultado é um cortisol pós-supressão falsamente elevado (falso-positivo). O contraceptivo oral eleva a CBG, elevando o cortisol total, mas o cortisol livre não é afetado — importante no diagnóstico de Pseudo-Cushing."
+  },
+  {
+    question: "Paciente com hipercortisolismo endógeno confirmado apresenta ACTH indetectável (< 5 pg/mL). TC de adrenal: massas bilaterais com nódulos heterogêneos e calcificações. Qual etiologia ACTH-independente rara pode estar presente?",
+    options: [
+      "Hiperplasia adrenal macronodular bilateral (HAMB), com produção autônoma de cortisol por múltiplos nódulos",
+      "Doença adrenal pigmentada primária (DAPP), que cursa com micronódulos e hipercortisolismo cíclico",
+      "Síndrome de Carney, com adenoma hipofisário produtor de ACTH e lesões adrenais bilaterais pigmentadas",
+      "Adenomas adrenais bilaterais sincrônicos, que ocorrem em mais de 30% dos casos de Cushing adrenal",
+      "Feocromocitoma bilateral produtor de cortisol, associado ao complexo MEN-2 com ACTH suprimido"
+    ],
+    correctIndex: 0,
+    explanation: "A hiperplasia adrenal macronodular bilateral (HAMB) é uma causa rara de Cushing ACTH-independente, caracterizada por múltiplos macronódulos bilaterais (> 10 mm) que produzem cortisol de forma autônoma, suprimindo o ACTH. Alguns casos têm receptores aberrantes para GIP, vasopressina ou catecolaminas, que estimulam a esteroidogênese independente de ACTH. O tratamento pode ser adrenalectomia bilateral ou, em casos selecionados, adrenalectomia unilateral do lado dominante."
+  },
+  {
+    question: "Criança de 4 anos com obesidade centrípeta, estatura baixa para a idade e estrias roxas no abdome. Qual é a apresentação clínica que diferencia o hipercortisolismo da obesidade exógena simples nesta faixa etária?",
+    options: [
+      "Baixa estatura e desaceleração do crescimento, que não ocorrem na obesidade simples onde a estatura é normal",
+      "Estrias abdominais roxas, pois na obesidade exógena as estrias são sempre brancas e finas ao exame",
+      "Distribuição centrípeta da gordura, exclusiva do Cushing e ausente na obesidade exógena em crianças",
+      "Hipertensão arterial, que diferencia o Cushing da obesidade simples com sensibilidade de 95% em crianças",
+      "Hiperglicemia em jejum, que só ocorre no Cushing e não na obesidade exógena abaixo de 10 anos"
+    ],
+    correctIndex: 0,
+    explanation: "Em crianças, o hipercortisolismo inibe o GH e o IGF-1, causando desaceleração ou parada do crescimento longitudinal. Isso contrasta diretamente com a obesidade exógena, em que a criança tem estatura normal ou acima do percentil esperado. A baixa estatura + obesidade é, portanto, um sinal de alarme para Cushing endógeno em pediatria. Estrias roxas (embora sugestivas) podem ocorrer em obesos jovens; a desaceleração do crescimento é o diferencial mais importante."
+  },
+  {
+    question: "Mulher, 52 anos, em uso crônico de prednisona 20 mg/dia por artrite reumatoide há 3 anos. Apresenta face em lua cheia, corcova de búfalo e estrias. Qual é a causa do hipercortisolismo e qual exame de rastreio não deve ser usado nesta paciente?",
+    options: [
+      "Cushing exógeno por glicocorticoide; cortisol urinário e teste de supressão com dexametasona são inválidos",
+      "Cushing endógeno exacerbado pelo corticoide; ACTH sérico confirma a origem hipofisária subjacente",
+      "Doença de Cushing desencadeada pelo corticoide exógeno; RM de sela é o primeiro exame indicado",
+      "Pseudo-Cushing funcional; suspender o corticoide e repetir o cortisol urinário após 4 semanas",
+      "Hiperplasia adrenal induzida pelo corticoide; TC de adrenal para avaliar hiperplasia bilateral secundária"
+    ],
+    correctIndex: 0,
+    explanation: "O Cushing iatrogênico (exógeno) é a causa mais comum de síndrome de Cushing em geral. Glicocorticoides exógenos suprimem o eixo hipotálamo-hipofisário-adrenal: ACTH e cortisol endógenos ficam baixos/indetectáveis. O cortisol urinário de 24h e o teste de supressão com dexametasona são inválidos (a dexametasona pode não ser detectada no imunoensaio de cortisol; o cortisol urinário mede o cortisol endógeno, que estará suprimido). O diagnóstico é clínico e o tratamento é a redução gradual do glicocorticoide."
+  },
+  {
+    question: "Paciente com Doença de Cushing não curada pela cirurgia transesfenoidal. Endocrinologista considera segunda linha de tratamento. Quais são as opções disponíveis para controle do hipercortisolismo neste caso?",
+    options: [
+      "Radioterapia hipofisária estereotáxica, reoperação transesfenoidal e inibidores de esteroidogênese",
+      "Adrenalectomia unilateral do lado com maior captação como única opção após falha cirúrgica hipofisária",
+      "Octreotídeo em dose alta como substituto cirúrgico, pois suprime o ACTH residual do adenoma",
+      "Bromocriptina isolada como segunda linha, pela sua ação dopaminérgica no adenoma corticotrófico",
+      "Mitotane em monoterapia, exclusivamente indicado para Doença de Cushing refratária ao transesfenoidal"
+    ],
+    correctIndex: 0,
+    explanation: "Após falha do transesfenoidal, as opções incluem: (1) reoperação transesfenoidal por cirurgião experiente; (2) radioterapia hipofisária estereotáxica (SRS/IMRT), com remissão em 50–70% em 3 a 5 anos; (3) farmacoterapia com inibidores de esteroidogênese (cetoconazol, osilodrostato, metirapona) como ponte até a radioterapia atuar; (4) adrenalectomia bilateral como último recurso (risco de Síndrome de Nelson). A mifepristona bloqueia o receptor de glicocorticoide e controla manifestações sem reduzir o cortisol."
+  },
+  {
+    question: "Mulher com Doença de Cushing submetida a adrenalectomia bilateral após falha do transesfenoidal. Um ano depois, desenvolve pigmentação cutânea intensa (mucosas e palmas das mãos) e cefaléia progressiva. RM hipofisária: tumor de 2 cm. Qual é o diagnóstico?",
+    options: [
+      "Síndrome de Nelson: crescimento do tumor hipofisário após adrenalectomia bilateral com hiperpigmentação",
+      "Recidiva do Cushing após adrenalectomia, com hipersecreção de cortisol pela adrenal remanescente",
+      "Macroadenoma hipofisário não funcionante com compressão da haste e pigmentação por déficit de MSH",
+      "Carcinoma hipofisário invasivo, que acomete pacientes previamente tratados com adrenalectomia bilateral",
+      "Doença de Addison pós-cirúrgica com hiperpigmentação por ACTH elevado sem supressão adrenal"
+    ],
+    correctIndex: 0,
+    explanation: "A Síndrome de Nelson ocorre em 15 a 25% dos pacientes com Doença de Cushing submetidos a adrenalectomia bilateral. Sem o feedback negativo do cortisol, o adenoma hipofisário restante cresce agressivamente, produzindo quantidades maciças de ACTH e MSH (derivados do POMC). A hiperpigmentação intensa (cutânea e de mucosas) por excesso de MSH é a marca clínica. O tumor pode comprimir estruturas vizinhas. O tratamento é a radioterapia hipofisária ou reoperação."
+  },
+  {
+    question: "Homem, 45 anos, com Cushing endógeno e ACTH 180 pg/mL. TC de tórax sem lesão. RM de sela sem lesão hipofisária. CSPI com CRH: gradiente central/periférico de 1,4 (< 2). Qual é a interpretação e conduta?",
+    options: [
+      "Gradiente < 2 indica fonte ectópica; ampliar rastreio com octreoscintilografia e TC de corpo inteiro",
+      "Gradiente < 2 indica Doença de Cushing com lateralização para o lobo hipofisário sem adenoma visível",
+      "Gradiente < 2 invalida o CSPI; repetir o cateterismo com vasopressina ao invés de CRH como estímulo",
+      "Gradiente < 2 com ACTH elevado indica resistência ao cortisol; suspender a investigação por Cushing",
+      "Gradiente < 2 em CSPI indica Pseudo-Cushing funcional; investigar depressão ou alcoolismo como causa"
+    ],
+    correctIndex: 0,
+    explanation: "No CSPI com estímulo de CRH, gradiente central/periférico < 2 (basal) ou < 3 (pós-CRH) indica que a fonte de ACTH não é hipofisária — ou seja, secreção ectópica. Com TC de tórax negativo, ampliar a investigação com octreoscintilografia (receptor de somatostatina) para rastrear carcinoides ocultos, e TC/RM de abdome e pelve para pesquisar tumor pancreático, mediastinal ou outros sítios ectópicos menos comuns."
+  },
+  {
+    question: "Mulher, 31 anos, com sintomas cíclicos: ganho de peso e hipertensão por 3 semanas, seguidos de períodos de normalidade por 4 a 6 semanas. Cortisol urinário elevado em uma coleta, normal em outra. Qual padrão de Cushing deve ser considerado?",
+    options: [
+      "Síndrome de Cushing cíclica, com hipercortisolismo episódico intercalado com períodos de normalidade",
+      "Pseudo-Cushing funcional por estresse, com cortisol variável sem hipersecreção patológica sustentada",
+      "Doença de Cushing com remissão espontânea após tratamento medicamentoso não relatado pela paciente",
+      "Síndrome de ACTH ectópico com produção pulsátil por tumor carcinoide de baixo grau de malignidade",
+      "Hipercortisolismo por uso intermitente de corticoide inalatório em doses muito altas não relatadas"
+    ],
+    correctIndex: 0,
+    explanation: "A Síndrome de Cushing cíclica é uma apresentação incomum em que os períodos de hipercortisolismo se alternam com períodos de função adrenal normal. O diagnóstico é desafiador porque uma única coleta de cortisol pode ser normal. Requer múltiplas dosagens de cortisol urinário de 24h ou cortisol salivar noturno ao longo de semanas a meses, correlacionando com os períodos sintomáticos. A causa mais comum é adenoma hipofisário ou ectópico com secreção pulsátil."
+  },
+  {
+    question: "Paciente com Síndrome de Cushing e cortisol urinário 3 vezes o limite superior. O médico solicita cortisol salivar noturno às 23h. Qual é a justificativa fisiológica para o horário de coleta do cortisol salivar noturno?",
+    options: [
+      "O nadir fisiológico do cortisol é à meia-noite; no Cushing, o ritmo circadiano está perdido e o cortisol permanece elevado",
+      "O pico máximo do cortisol ocorre à meia-noite; dosá-lo neste momento identifica a hipersecreção inicial",
+      "A saliva é coletada à noite porque a produção salivar diurna dilui o cortisol, reduzindo a sensibilidade",
+      "A meia-noite coincide com o pico de ACTH hipofisário, tornando o cortisol salivar mais estável",
+      "A coleta noturna evita interferência alimentar, que eleva o cortisol salivar por estímulo vagal pós-prandial"
+    ],
+    correctIndex: 0,
+    explanation: "O cortisol segue ritmo circadiano com pico matinal (7–9h) e nadir à meia-noite. Em indivíduos normais, o cortisol salivar à meia-noite é muito baixo (< 145 ng/dL na maioria dos laboratórios). Na Síndrome de Cushing, o ritmo circadiano está abolido e o cortisol permanece elevado mesmo à meia-noite. O cortisol salivar é uma amostra de coleta não invasiva que reflete o cortisol livre biologicamente ativo, sem influência da CBG."
+  },
+  {
+    question: "Homem, 40 anos, com Cushing endógeno e comorbidades: hipertensão, diabetes tipo 2 e osteoporose com fratura vertebral. Qual complicação do hipercortisolismo crônico causou a osteoporose neste paciente?",
+    options: [
+      "Inibição da diferenciação e aumento da apoptose dos osteoblastos, com redução da síntese óssea",
+      "Estimulação dos osteoclastos pelo excesso de cortisol, causando reabsorção óssea acelerada isolada",
+      "Hipercalcemia induzida pelo cortisol, que suprime o PTH e reduz a atividade osteoblástica residual",
+      "Redução da absorção intestinal de vitamina D pelo cortisol, com hipocalcemia e hiperparatiroidismo",
+      "Aumento da excreção urinária de cálcio pelo cortisol, causando balanço cálcico negativo e desmineralização"
+    ],
+    correctIndex: 0,
+    explanation: "O excesso de glicocorticoide causa osteoporose por múltiplos mecanismos, mas o principal é a inibição da diferenciação e indução de apoptose dos osteoblastos, reduzindo a formação óssea. Também reduz a absorção intestinal de cálcio (antagonismo à vitamina D) e aumenta a reabsorção osteoclástica indiretamente. O resultado é perda óssea rápida e progressiva, com fraturas vertebrais em cunha sendo as mais características do Cushing endógeno e iatrogênico."
+  },
+  {
+    question: "Mulher, 29 anos, com Cushing confirmado, ACTH suprimido e TC de adrenal: nódulo de 6 cm à esquerda, heterogêneo, com áreas de necrose. Qual característica do nódulo sugere carcinoma adrenocortical em vez de adenoma?",
+    options: [
+      "Tamanho maior que 4 cm com aspecto heterogêneo e áreas de necrose, sugerindo malignidade adrenal",
+      "ACTH suprimido com cortisol elevado, padrão exclusivo do carcinoma adrenocortical produtor de cortisol",
+      "Localização à esquerda, pois o carcinoma adrenocortical acomete preferencialmente a adrenal esquerda",
+      "Ausência de calcificações na TC, que diferencia o carcinoma do adenoma que sempre calcifica",
+      "Presença de gordura microscópica na TC, que é achado específico de carcinoma e ausente no adenoma"
+    ],
+    correctIndex: 0,
+    explanation: "Critérios sugestivos de carcinoma adrenocortical na TC: tamanho > 4 cm, aspecto heterogêneo, bordas irregulares, necrose interna, ausência de gordura intratumoral, coeficiente de atenuação > 10 UH em TC sem contraste e lavagem de contraste < 50% em 10 minutos. O nódulo de 6 cm com necrose preenche múltiplos critérios de malignidade. O carcinoma adrenocortical é raro (1–2/milhão/ano), mas deve ser descartado em todo incidentaloma > 4 cm."
+  },
+  {
+    question: "Paciente com diagnóstico de Síndrome de Cushing por hipercortisolismo endógeno. Durante a investigação, o clínico observa que a paciente usa anticoncepcional oral (etinilestradiol). Como o anticoncepcional interfere nos exames laboratoriais de cortisol?",
+    options: [
+      "Eleva a CBG sérica, aumentando o cortisol total, sem alterar o cortisol livre biologicamente ativo",
+      "Suprime o ACTH hipofisário pelo estrogênio, reduzindo o cortisol total e causando falso-negativo",
+      "Inibe a 11-beta-hidroxiesteroide desidrogenase, aumentando o cortisol livre urinário artificialmente",
+      "Eleva diretamente o cortisol livre por estimulação direta do córtex adrenal pelo etinilestradiol",
+      "Reduz o clearance renal do cortisol, elevando o cortisol urinário de 24h por mecanismo tubular"
+    ],
+    correctIndex: 0,
+    explanation: "O estrogênio (oral ou do anticoncepcional combinado) estimula a produção hepática de CBG (globulina ligadora de corticosteroides), elevando o cortisol total sérico. O cortisol livre biologicamente ativo não é afetado. Isso causa falso-positivo no cortisol sérico total, mas não no cortisol urinário livre (que mede cortisol não ligado a proteínas) nem no cortisol salivar. Recomenda-se suspender o anticoncepcional por 6 semanas antes de dosar o cortisol sérico total."
+  },
+  {
+    question: "Mulher, 36 anos, com síndrome de Cushing e osteoporose grave. Indicada adrenalectomia laparoscópica direita para adenoma de 3 cm. Qual cuidado pós-operatório é indispensável para evitar crise adrenal após a cirurgia?",
+    options: [
+      "Reposição imediata de hidrocortisona, com redução gradual ao longo de meses até recuperação do eixo",
+      "Administração de ACTH sintético por 7 dias para estimular a adrenal contralateral a retomar a produção",
+      "Evitar qualquer glicocorticoide pós-operatório, pois a adrenal remanescente compensa dentro de 48 horas",
+      "Uso de fludrocortisona isolada por 30 dias para compensar a perda do mineralocorticoide adrenal",
+      "Hidrocortisona em dose de estresse apenas no dia da cirurgia, sem necessidade de manutenção posterior"
+    ],
+    correctIndex: 0,
+    explanation: "Após adrenalectomia unilateral por adenoma hipersecretor, a adrenal contralateral está atrofiada por supressão crônica pelo excesso de cortisol. O eixo hipotálamo-hipofisário-adrenal pode levar semanas a meses para se recuperar. A reposição de hidrocortisona (15–25 mg/dia) deve ser iniciada imediatamente no pós-operatório e reduzida gradualmente conforme o eixo se recupera, monitorada pela resposta ao teste de estímulo com cosintropina. Não fazer essa reposição pode causar crise addisoniana grave."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+const questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+let current = 0, correct = 0, wrong = 0, answered = false;
+
+function startQuiz() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D','E'];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Questão ${current + 1} de ${questions.length}`;
+  document.getElementById('questionCard').innerHTML = `
+    <div class="question-meta">
+      <span class="question-number">Questão ${current + 1}</span>
+      <span class="question-area">Síndrome de Cushing</span>
+    </div>
+    <div class="question-text">${q.question}</div>
+    <div class="options-list">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" onclick="selectAnswer(${i})" id="opt${i}">
+          <span class="option-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('')}
+    </div>
+    <div id="feedback" style="display:none"></div>
+  `;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+  const isCorrect = idx === q.correctIndex;
+  buttons[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correctIndex].classList.add('correct');
+  if (isCorrect) correct++; else wrong++;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.innerHTML = `
+    <div class="feedback-badge ${isCorrect ? 'correct-badge' : 'wrong-badge'}">${isCorrect ? '✓ Correto!' : '✗ Incorreto'}</div>
+    <div class="explanation-box"><strong>Explicação:</strong>${q.explanation}</div>
+    <button class="btn-next" onclick="nextQuestion()">${current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado'}</button>
+  `;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) renderQuestion();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  const pct = Math.round((correct / questions.length) * 100);
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('totalCorrect').textContent = correct;
+  document.getElementById('totalWrong').textContent = wrong;
+}
+
+function restartQuiz() {
+  current = 0; correct = 0; wrong = 0;
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+</script>
+</body>
+</html>
