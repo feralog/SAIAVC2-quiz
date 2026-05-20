@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — DRGE | SAIAVC2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a1a; min-height: 100vh; }
+header { background: linear-gradient(135deg, #064e3b 0%, #166534 100%); color: white; padding: 18px 30px; text-align: center; }
+header h1 { font-size: 20px; margin-bottom: 4px; font-weight: 700; }
+header p { font-size: 12px; opacity: 0.8; }
+.quiz-container { max-width: 820px; margin: 28px auto; padding: 0 16px 80px; }
+#startScreen { background: white; border-radius: 14px; padding: 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#startScreen h2 { font-size: 22px; color: #064e3b; margin-bottom: 12px; }
+#startScreen p { font-size: 14px; color: #555; margin-bottom: 8px; line-height: 1.7; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 18px 0 26px; }
+.tag { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+.btn-primary { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 13px 34px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary:hover { background: #15803d; }
+.progress-bar-bg { background: #dde3ea; border-radius: 8px; height: 8px; margin-bottom: 6px; }
+.progress-bar-fill { background: #16a34a; height: 8px; border-radius: 8px; transition: width 0.4s ease; }
+.progress-label { font-size: 12px; color: #666; margin-bottom: 18px; }
+.question-card { background: white; border-radius: 14px; padding: 28px 30px; box-shadow: 0 2px 14px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.question-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.question-number { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #16a34a; letter-spacing: 1px; }
+.question-area { font-size: 11px; font-weight: 600; background: #d1fae5; color: #065f46; border-radius: 12px; padding: 2px 10px; }
+.question-text { font-family: Georgia, serif; font-size: 15px; line-height: 1.78; color: #1a1a1a; margin-bottom: 22px; }
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-btn { width: 100%; text-align: left; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 13px 16px; font-size: 13.5px; line-height: 1.5; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+.option-btn:hover:not(:disabled) { border-color: #6ee7b7; background: #f0fdf4; }
+.option-btn:disabled { cursor: default; }
+.option-letter { font-weight: 700; color: #16a34a; min-width: 22px; font-size: 13px; padding-top: 1px; }
+.option-btn.correct { border-color: #16a34a; background: #f0fdf4; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; }
+.option-btn.correct .option-letter { color: #16a34a; }
+.option-btn.wrong .option-letter { color: #dc2626; }
+.feedback-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 16px 0 8px; }
+.feedback-badge.correct-badge { background: #dcfce7; color: #15803d; }
+.feedback-badge.wrong-badge { background: #fee2e2; color: #b91c1c; }
+.explanation-box { background: #fefce8; border-left: 4px solid #eab308; border-radius: 0 8px 8px 0; padding: 13px 16px; font-size: 13px; line-height: 1.7; margin-top: 12px; color: #422006; }
+.explanation-box strong { display: block; margin-bottom: 4px; color: #713f12; }
+.btn-next { background: #16a34a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
+.btn-next:hover { background: #15803d; }
+#resultScreen { background: white; border-radius: 14px; padding: 44px 40px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+#resultScreen h2 { font-size: 24px; color: #064e3b; margin-bottom: 8px; }
+.score-circle { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #064e3b); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px auto; }
+.score-pct { font-size: 28px; font-weight: 800; }
+.score-label { font-size: 11px; opacity: 0.85; }
+.result-stats { display: flex; gap: 16px; justify-content: center; margin: 20px 0; }
+.stat-box { background: #f8fafc; border-radius: 10px; padding: 14px 22px; }
+.stat-box .stat-val { font-size: 22px; font-weight: 800; }
+.stat-box .stat-desc { font-size: 12px; color: #64748b; }
+.stat-box.green .stat-val { color: #16a34a; }
+.stat-box.red .stat-val { color: #dc2626; }
+.hidden { display: none; }
+a.back-link { display: inline-block; margin-top: 20px; font-size: 13px; color: #16a34a; text-decoration: none; }
+a.back-link:hover { text-decoration: underline; }
+.back-home-fixed { position: fixed; top: 14px; left: 14px; z-index: 9999; background: rgba(255,255,255,0.96); color: #064e3b; border: 1px solid #cbd5e1; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.back-home-fixed:hover { background: #ffffff; color: #16a34a; }
+</style>
+</head>
+<body>
+<a class="back-home-fixed" href="index.html">← Voltar ao início</a>
+
+<header>
+  <h1>DRGE — Casos Clínicos</h1>
+  <p>Clínica Médica · SAIAVC2 · 20 questões</p>
+</header>
+<div class="quiz-container">
+
+  <div id="startScreen">
+    <h2>Doença do Refluxo Gastroesofágico</h2>
+    <p>20 casos clínicos cobrindo fisiopatologia, apresentações típicas e atípicas, exames subsidiários, classificação endoscópica, esôfago de Barrett e abordagem terapêutica.</p>
+    <div class="tag-row">
+      <span class="tag">Fisiopatologia</span>
+      <span class="tag">Classificação Los Angeles</span>
+      <span class="tag">Esôfago de Barrett</span>
+      <span class="tag">IBP</span>
+      <span class="tag">Cirurgia antirrefluxo</span>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Começar</button>
+  </div>
+
+  <div id="quizScreen" class="hidden">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <div id="resultScreen" class="hidden">
+    <h2>Resultado Final</h2>
+    <div class="score-circle">
+      <span class="score-pct" id="scorePct"></span>
+      <span class="score-label">acertos</span>
+    </div>
+    <div class="result-stats">
+      <div class="stat-box green"><div class="stat-val" id="totalCorrect"></div><div class="stat-desc">Corretas</div></div>
+      <div class="stat-box red"><div class="stat-val" id="totalWrong"></div><div class="stat-desc">Erradas</div></div>
+      <div class="stat-box"><div class="stat-val">20</div><div class="stat-desc">Total</div></div>
+    </div>
+    <button class="btn-primary" onclick="restartQuiz()">Refazer</button>
+    <br><a class="back-link" href="index.html">← Voltar ao índice</a>
+  </div>
+
+</div>
+<script>
+const rawQuestions = [
+  {
+    question: "Homem, 42 anos, queixa de queimação retroesternal após refeições há 8 meses, pior ao deitar. Nega disfagia ou perda de peso. Endoscopia revela erosões coalescentes em mais de 75% da circunferência esofágica, sem estenose. Qual é a classificação endoscópica desta lesão?",
+    options: [
+      "Los Angeles D, caracterizada por erosões coalescentes acometendo mais de 75% da circunferência",
+      "Los Angeles C, caracterizada por erosões confluentes em mais de 50% da circunferência esofágica",
+      "Los Angeles B, caracterizada por erosões isoladas com mais de 5 mm não contínuas entre si",
+      "Los Angeles A, caracterizada por erosões com menos de 5 mm restritas ao topo de pregas",
+      "Barrett inicial, classificado quando há metaplasia colunar sem erosão macroscópica visível"
+    ],
+    correctIndex: 0,
+    explanation: "A classificação de Los Angeles estratifica a DRGE erosiva em A (erosões < 5 mm), B (erosões > 5 mm não confluentes), C (confluentes em < 75% da circunferência) e D (confluentes em ≥ 75% da circunferência). O caso descreve comprometimento de mais de 75%, portanto Los Angeles D."
+  },
+  {
+    question: "Mulher, 38 anos, com pirose e regurgitação há 1 ano, sem resposta a IBP em dose padrão após 8 semanas. Endoscopia sem lesões visíveis. Qual é o próximo exame diagnóstico mais indicado para confirmar DRGE e orientar a conduta?",
+    options: [
+      "pHmetria esofágica de 24 horas para quantificar a exposição ácida esofágica",
+      "Manometria esofágica de alta resolução para descartar acalasia como causa dos sintomas",
+      "Cintilografia gástrica para avaliar esvaziamento e excluir gastroparesia associada",
+      "Tomografia de tórax contrastada para avaliar hérnia de hiato e possíveis complicações",
+      "Repetição da endoscopia com cromoendoscopia para identificar metaplasia oculta de Barrett"
+    ],
+    correctIndex: 0,
+    explanation: "Na DRGE não erosiva refratária ao IBP, a pHmetria de 24 horas é o padrão-ouro para documentar exposição ácida patológica. Ela é especialmente indicada antes de considerar tratamento cirúrgico ou quando há dúvida diagnóstica. A manometria é complementar para localizar o EEI, mas não quantifica o refluxo ácido."
+  },
+  {
+    question: "Paciente de 55 anos com DRGE de longa data e pirose diária há 12 anos. Endoscopia mostra segmento de epitélio com aspecto salmonado de 3 cm acima da junção esofagogástrica. Biópsias confirmam metaplasia intestinal especializada. Qual a conduta mais adequada?",
+    options: [
+      "Endoscopia de vigilância a cada 3 a 5 anos com IBP contínuo para controle do refluxo",
+      "Esofagectomia profilática imediata pelo alto risco de progressão para adenocarcinoma",
+      "Ablação por radiofrequência sem biópsias adicionais, pois o diagnóstico já está confirmado",
+      "Suspender o IBP e repetir a endoscopia em 6 semanas para confirmar a extensão do Barrett",
+      "Dilatação esofágica endoscópica para prevenir estenose e facilitar vigilância futura"
+    ],
+    correctIndex: 0,
+    explanation: "O esôfago de Barrett sem displasia exige vigilância endoscópica com biópsias (protocolo de Seattle) a cada 3 a 5 anos, associada a IBP contínuo para reduzir o estímulo metaplásico. A esofagectomia é reservada para displasia de alto grau ou adenocarcinoma. A ablação por radiofrequência é indicada na displasia confirmada, não no Barrett sem displasia."
+  },
+  {
+    question: "Homem, 48 anos, com pirose há 6 meses e tosse seca noturna persistente sem causa respiratória identificada. Endoscopia sem erosões. Qual manifestação explica a tosse neste contexto de DRGE?",
+    options: [
+      "Manifestação atípica extraesofágica por microaspiração do refluxato ou reflexo vagal laríngeo",
+      "Complicação de Los Angeles D com fístula esofagobrônquica causando aspiração direta",
+      "Acalasia secundária à DRGE crônica, gerando regurgitação alta e aspiração noturna",
+      "Efeito colateral do IBP em uso prolongado, que reduz a secreção gástrica e causa tosse",
+      "Hérnia de hiato volumosa comprimindo o brônquio principal esquerdo por efeito mecânico"
+    ],
+    correctIndex: 0,
+    explanation: "A DRGE pode causar sintomas extraesofágicos como tosse crônica, laringite, rouquidão e asma por dois mecanismos: microaspiração do refluxato ácido para a via aérea e reflexo vagal esofagobrônquico. A DRGE não erosiva é a forma mais comum nesse contexto, pois a mucosa ainda não desenvolveu erosões visíveis."
+  },
+  {
+    question: "Mulher, 34 anos, obesa, com diagnóstico de DRGE. Recebe orientações de mudança de estilo de vida. Qual medida comportamental tem a maior evidência para reduzir os episódios de refluxo?",
+    options: [
+      "Elevação da cabeceira da cama em 15 a 20 cm para reduzir o refluxo noturno em decúbito",
+      "Eliminação do glúten da dieta, pois o trigo aumenta a acidez gástrica e o refluxo ácido",
+      "Ingestão de leite gelado após as refeições, pois neutraliza o ácido gástrico residual",
+      "Aumento do intervalo entre refeições para 6 horas, reduzindo o volume gástrico após comer",
+      "Uso de cinto abdominal compressivo ao dormir para evitar refluxo noturno por pressão"
+    ],
+    correctIndex: 0,
+    explanation: "A elevação da cabeceira da cama tem evidência sólida para redução do refluxo noturno, aproveitando a gravidade para dificultar o retorno do conteúdo gástrico em decúbito. Outras medidas com evidência incluem: perda de peso, evitar refeições pesadas à noite, evitar tabaco e álcool. Leite, apesar de tamponar o ácido momentaneamente, estimula secreção gástrica subsequente."
+  },
+  {
+    question: "Paciente com DRGE erosiva (Los Angeles B) inicia IBP em dose plena. Após 8 semanas de tratamento, apresenta resolução dos sintomas. Qual é a conduta mais adequada para manutenção?",
+    options: [
+      "Manter IBP na menor dose eficaz para controle sintomático a longo prazo",
+      "Suspender o IBP imediatamente após a melhora clínica, pois a cura endoscópica foi alcançada",
+      "Aumentar a dose do IBP ao dobro para garantir pH > 6 no esôfago durante 24 horas",
+      "Substituir o IBP por antiácido de uso contínuo, com menor risco de efeitos adversos crônicos",
+      "Indicar fundoplicatura laparoscópica imediata para suspender o IBP com segurança"
+    ],
+    correctIndex: 0,
+    explanation: "Na DRGE erosiva, após a fase de indução com IBP em dose plena (8 semanas), mantém-se a menor dose eficaz para controle dos sintomas a longo prazo. A suspensão abrupta leva a recidiva em maioria dos pacientes com doença erosiva. A cirurgia é reservada para casos refratários, complicações ou preferência do paciente após avaliação individualizada."
+  },
+  {
+    question: "Homem, 50 anos, com DRGE e hérnia de hiato por deslizamento de 4 cm confirmada por endoscopia. Usa omeprazol 20 mg/dia há 3 anos com bom controle. Qual é a principal função do ligamento frenoesofágico neste contexto?",
+    options: [
+      "Fixar o esôfago ao hiato diafragmático, estabilizando o EEI e dificultando sua migração",
+      "Produzir muco esofágico protetor que neutraliza o ácido no segmento distal do esôfago",
+      "Regular o esvaziamento gástrico ao coordenar a abertura da cárdia com o piloro",
+      "Transmitir o reflexo vagal que controla os episódios de relaxamento transitório do EEI",
+      "Impedir o refluxo bilioduodenal ao criar pressão positiva na junção esofagogástrica"
+    ],
+    correctIndex: 0,
+    explanation: "O ligamento frenoesofágico é uma estrutura de tecido conjuntivo que ancora o esôfago distal ao hiato diafragmático, mantendo o esfíncter esofágico inferior (EEI) em posição intra-abdominal. Sua ruptura ou enfraquecimento permite a migração proximal do EEI para o tórax, gerando a hérnia de hiato por deslizamento e comprometendo a barreira antirrefluxo."
+  },
+  {
+    question: "Mulher, 45 anos, com DRGE refratária ao IBP em dose dobrada há 12 meses, confirmada por pHmetria com DeMeester > 14,7. Deseja suspender a medicação e solicita alternativa definitiva. Qual a melhor conduta cirúrgica?",
+    options: [
+      "Fundoplicatura total de Nissen por via laparoscópica como tratamento definitivo da DRGE",
+      "Esofagectomia parcial distal por videolaparoscopia para retirar o segmento hipotônico do EEI",
+      "Gastrectomia em manga associada à piloroplastia para reduzir o volume e a acidez gástrica",
+      "Gastroplastia de Collis para alongar o esôfago e reposicionar o EEI abaixo do diafragma",
+      "Banda esofágica magnética (LINX) exclusiva, reservada a pacientes com hérnia acima de 3 cm"
+    ],
+    correctIndex: 0,
+    explanation: "A fundoplicatura total de Nissen por via laparoscópica é o tratamento cirúrgico padrão para DRGE refratária confirmada. Consiste em envolver 360° do fundo gástrico em torno do esôfago distal, reconstituindo a barreira antirrefluxo. A banda magnética (LINX) é uma alternativa para casos selecionados sem hérnia de hiato > 3 cm. Esofagectomia não está indicada para DRGE sem complicação maligna."
+  },
+  {
+    question: "Homem, 39 anos, com endoscopia normal e sintomas de pirose 3 vezes por semana. pHmetria mostra exposição ácida normal e correlação positiva dos sintomas com episódios de refluxo não ácido. Qual diagnóstico melhor explica o quadro?",
+    options: [
+      "Hipersensibilidade esofágica ao refluxo, com sintomas desencadeados por refluxo não ácido",
+      "Acalasia vigorosa, que causa dor torácica e pirose por contrações esofágicas não propulsivas",
+      "Pirose funcional, em que não há correlação entre sintomas e qualquer episódio de refluxo",
+      "DRGE erosiva oculta, em que as erosões estão acima do alcance do endoscópio convencional",
+      "Esofagite eosinofílica, diagnosticada pela correlação de sintomas com alimentos específicos"
+    ],
+    correctIndex: 0,
+    explanation: "A hipersensibilidade esofágica ao refluxo caracteriza-se por sintomas típicos de DRGE, exposição ácida normal à pHmetria, mas com correlação positiva entre os sintomas e episódios de refluxo (ácido ou não ácido) no índice de sintomas. Difere da pirose funcional, em que não há correlação com refluxo. O tratamento inclui IBP, neuromoduladores e abordagem comportamental."
+  },
+  {
+    question: "Paciente com DRGE erosiva Los Angeles C iniciou IBP há 4 semanas. Retorna com pirose persistente. Qual é o principal mecanismo responsável pela falha do IBP quando o medicamento é tomado de forma incorreta?",
+    options: [
+      "Tomada sem relação com a refeição, reduzindo a ativação das bombas de próton em funcionamento",
+      "Efeito de rebote ácido imediato causado pela supressão do feedback de gastrina pelo IBP",
+      "Resistência genética adquirida das células parietais ao bloqueio da H+/K+-ATPase pelo fármaco",
+      "Metabolismo hepático acelerado pelo citocromo CYP3A4 que inativa o IBP antes de sua absorção",
+      "Dissolução prematura do revestimento entérico do IBP pelo suco gástrico em estômago vazio"
+    ],
+    correctIndex: 0,
+    explanation: "Os IBPs devem ser tomados 30 a 60 minutos antes da primeira refeição do dia para que estejam absorvidos e disponíveis quando as bombas de próton são ativadas pelo alimento. Ingeridos em jejum prolongado ou pós-prandial, encontram menor proporção de bombas ativas, reduzindo significativamente a supressão ácida. Este é o erro posológico mais comum na prática clínica."
+  },
+  {
+    question: "Mulher, 52 anos, com DRGE e esôfago de Barrett de segmento curto (< 3 cm) com displasia de baixo grau confirmada em duas endoscopias com intervalo de 6 meses. Qual é a conduta recomendada?",
+    options: [
+      "Ablação por radiofrequência do segmento de Barrett com seguimento endoscópico após o procedimento",
+      "Vigilância endoscópica semestral sem intervenção, pois a displasia de baixo grau raramente progride",
+      "Esofagectomia total imediata, pois a displasia de baixo grau tem risco alto de transformação maligna",
+      "Mucosectomia endoscópica de toda a extensão do Barrett, independente do grau de displasia",
+      "Aumento da dose do IBP para dobro e repetição da endoscopia em 12 semanas para reavaliação"
+    ],
+    correctIndex: 0,
+    explanation: "Nas diretrizes atuais, a displasia de baixo grau confirmada no Barrett é indicação preferencial de ablação por radiofrequência (RFA), que erradica o epitélio displásico com baixa morbidade. A vigilância sem intervenção é aceitável em casos selecionados, mas as evidências mostram benefício da ablação na progressão. Esofagectomia é reservada para displasia de alto grau ou adenocarcinoma intramucoso."
+  },
+  {
+    question: "Homem, 60 anos, obeso grau II, tabagista, com pirose e regurgitação diárias há 15 anos. Endoscopia mostra hérnia de hiato de 5 cm e Los Angeles B. Qual fator do paciente é identificado como principal agravante mecânico do refluxo neste caso?",
+    options: [
+      "Hérnia de hiato acima de 3 cm, que desloca o EEI para o tórax e anula a barreira pressórica",
+      "Tabagismo, que reduz diretamente a pressão do esfíncter esofágico superior, favorecendo refluxo",
+      "Obesidade grau II, que é o único fator de risco modificável com impacto na pressão do EEI",
+      "Idade avançada, que reduz a peristalse esofágica e o clearance ácido de forma irreversível",
+      "Duração dos sintomas, pois a cronicidade causa hipotonia progressiva do EEI ao longo dos anos"
+    ],
+    correctIndex: 0,
+    explanation: "A hérnia de hiato > 3 cm desloca o EEI para dentro do tórax, eliminando o suporte diafragmático e a pressão positiva intra-abdominal que normalmente reforçam a barreira antirrefluxo. Além disso, cria uma bolsa ácida que retarda o clearance esofágico. Embora obesidade e tabagismo sejam fatores agravantes importantes, a hérnia volumosa é o principal fator mecânico neste caso."
+  },
+  {
+    question: "Paciente de 44 anos apresenta dor torácica em queimação, pirose e regurgitação. Manometria esofágica de alta resolução mostra EEI hipotenso (pressão de repouso 6 mmHg) com peristalse esofágica preservada. Qual parâmetro manométrico identificado é o principal fator fisiopatológico da DRGE neste caso?",
+    options: [
+      "Hipotonia do EEI com pressão de repouso abaixo de 10 mmHg, facilitando o refluxo passivo",
+      "Ausência de onda peristáltica propagada, que reduz o clearance ácido e prolonga exposição",
+      "Ausência de relaxamento do EEI à deglutição, compatível com pseudo-obstrução esofágica",
+      "Pressão intraesofágica elevada em repouso, indicando obstrução funcional à passagem do alimento",
+      "Padrão de contractilidade hipertenso, sugestivo de espasmo esofágico difuso como causa da dor"
+    ],
+    correctIndex: 0,
+    explanation: "A pressão normal de repouso do EEI é de 10 a 45 mmHg. Valores abaixo de 10 mmHg configuram hipotonia, que permite o refluxo passivo (além do RTEEI). No caso, a peristalse está preservada, de modo que o principal mecanismo é a incompetência do EEI hipotenso. O RTEEI é o mecanismo mais frequente em geral, mas a hipotonia do EEI é predominante nos casos mais graves e erosivos."
+  },
+  {
+    question: "Mulher, 29 anos, grávida de 28 semanas, com pirose intensa e regurgitação diária. Qual é a abordagem terapêutica mais segura para este estágio gestacional?",
+    options: [
+      "Medidas posturais e dietéticas como primeira linha, com antiácidos de hidróxido de alumínio se necessário",
+      "Omeprazol 40 mg/dia desde o início da gestação, pois é categoria B e seguro em todos os trimestres",
+      "Fundoplicatura laparoscópica de urgência, pois a gestação contraindica qualquer uso de IBP",
+      "Metoclopramida contínua para aumentar o esvaziamento gástrico e reduzir o volume de refluxo",
+      "Ranitidina 300 mg/dia como primeira linha medicamentosa, substituindo antiácidos na gestação"
+    ],
+    correctIndex: 0,
+    explanation: "Na gestante, a primeira abordagem é sempre não farmacológica: refeições fracionadas, elevação da cabeceira, evitar deitar após comer e eliminar alimentos desencadeantes. Se necessário medicamento, antiácidos com hidróxido de alumínio/magnésio são os mais seguros. IBPs podem ser usados quando necessário, mas com preferência pelas medidas conservadoras nas fases iniciais. A ranitidina foi retirada do mercado por contaminação com NDMA."
+  },
+  {
+    question: "Homem, 57 anos, com DRGE e queixa nova de disfagia progressiva para sólidos há 3 meses, sem melhora com IBP. Qual complicação da DRGE crônica deve ser prioritariamente investigada?",
+    options: [
+      "Estenose péptica esofágica por fibrose da mucosa lesada pelo ácido ao longo dos anos",
+      "Acalasia adquirida pela destruição dos neurônios mioentéricos causada pelo refluxo ácido",
+      "Varizes esofágicas por hipertensão portal secundária à fibrose hepática associada ao refluxo",
+      "Divertículo de Zenker por aumento da pressão esofágica superior na DRGE grave não tratada",
+      "Carcinoma de células escamosas do esôfago médio associado ao refluxo ácido crônico não tratado"
+    ],
+    correctIndex: 0,
+    explanation: "A estenose péptica é uma complicação da DRGE crônica causada pela fibrose cicatricial da mucosa repetidamente lesada. Manifesta-se como disfagia progressiva para sólidos. O adenocarcinoma de esôfago distal também deve ser investigado, especialmente em Barrett prévio, por endoscopia com biópsias. A disfagia na DRGE é sempre um sinal de alarme que exige endoscopia urgente."
+  },
+  {
+    question: "Paciente com DRGE realiza impedâncio-pHmetria esofágica. O exame detecta múltiplos episódios de refluxo com pH > 4. Qual é a principal vantagem deste exame em relação à pHmetria convencional isolada?",
+    options: [
+      "Detectar refluxo não ácido e alcalino, invisível à pHmetria convencional que só mede pH < 4",
+      "Substituir completamente a endoscopia digestiva alta na investigação de DRGE refratária ao IBP",
+      "Medir diretamente a pressão do EEI durante o refluxo, correlacionando tônus e episódios ácidos",
+      "Identificar a presença de bile no refluxato por colorimetria espectral em tempo real",
+      "Quantificar o número de episódios de RTEEI durante as 24 horas de monitorização contínua"
+    ],
+    correctIndex: 0,
+    explanation: "A impedâncio-pHmetria detecta todos os episódios de refluxo independentemente do pH, incluindo o refluxo não ácido (pH 4–7) e fracamente ácido. Em pacientes usando IBP, o refluxo frequentemente se torna não ácido; a pHmetria convencional não o detectaria, subestimando o problema. A impedância-pH é especialmente útil na avaliação de pacientes com sintomas persistentes em uso de IBP."
+  },
+  {
+    question: "Mulher, 41 anos, com DRGE diagnosticada há 2 anos em uso de lansoprazol 30 mg/dia. Refere melhora de 80% dos sintomas. Lamenta tomar medicação crônica e pergunta sobre riscos do uso prolongado de IBP. Qual efeito adverso tem maior evidência em uso prolongado?",
+    options: [
+      "Hipomagnesemia, especialmente após mais de 1 ano de uso, com risco de arritmia e tetania",
+      "Hepatite autoimune induzida pelo IBP por mimetismo molecular com antígenos hepatocitários",
+      "Fibrose pulmonar intersticial progressiva por depósito de sílica liberada pelo comprimido entérico",
+      "Insuficiência renal aguda por nefrite intersticial em pacientes com DRC prévia exclusivamente",
+      "Adenocarcinoma gástrico acelerado pelo aumento de gastrina sérica em uso por mais de 5 anos"
+    ],
+    correctIndex: 0,
+    explanation: "A hipomagnesemia sintomática é um efeito adverso bem documentado do uso prolongado de IBP (> 1 ano), possivelmente por redução da absorção intestinal de magnésio. Manifesta-se com cãibras, tetania e arritmias. Outros efeitos com evidência incluem: déficit de B12 e cálcio com uso muito prolongado, maior risco de infecções intestinais (Clostridium). O benefício terapêutico supera os riscos na maioria dos pacientes."
+  },
+  {
+    question: "Homem, 53 anos, com DRGE grave confirmada por pHmetria (DeMeester 35) e endoscopia (Los Angeles C), indicado para fundoplicatura. No pré-operatório, a manometria esofágica revela peristalse ineficaz em 60% das deglutições. Como este achado influencia a decisão cirúrgica?",
+    options: [
+      "Indica fundoplicatura parcial posterior de Toupet (270°) para reduzir disfagia pós-operatória",
+      "Contraindica qualquer procedimento cirúrgico, pois a motilidade ineficaz torna a cirurgia inútil",
+      "Indica fundoplicatura total de Nissen (360°) reforçada, pois a motilidade ineficaz exige barreira máxima",
+      "Não altera a decisão cirúrgica, pois a manometria pré-operatória não prediz resultado da fundoplicatura",
+      "Indica esofagectomia distal com interposição gástrica, preservando o segmento com motilidade normal"
+    ],
+    correctIndex: 0,
+    explanation: "A peristalse ineficaz (< 30 mmHg em > 30% das deglutições) é considerada uma contraindicação relativa à fundoplicatura total de Nissen (360°), pois a válvula muito competente pode causar disfagia pós-operatória quando o esôfago não tem força para vencer a nova resistência. A fundoplicatura parcial de Toupet (270° posterior) oferece controle adequado do refluxo com menor risco de disfagia neste contexto."
+  },
+  {
+    question: "Criança de 8 meses com regurgitações frequentes após mamadas, sem ganho ponderal adequado, irritabilidade e arqueamento. Qual é a diferença entre refluxo gastroesofágico fisiológico e DRGE pediátrica neste caso?",
+    options: [
+      "O refluxo fisiológico não causa sintomas de alarme; a DRGE cursa com falha de crescimento e irritabilidade",
+      "O refluxo fisiológico é exclusivo dos primeiros 3 meses; após isso, qualquer regurgitação é DRGE",
+      "O refluxo fisiológico requer IBP preventivo desde o nascimento para evitar esôfago de Barrett precoce",
+      "O refluxo fisiológico causa apenas regurgitação; a DRGE exige presença obrigatória de erosão endoscópica",
+      "O refluxo fisiológico desaparece sempre com a posição sentada; a DRGE persiste independente da postura"
+    ],
+    correctIndex: 0,
+    explanation: "O refluxo gastroesofágico fisiológico é comum em lactentes (pico aos 4 meses) pela imaturidade do EEI e postura horizontal predominante, sem repercussões clínicas. A DRGE pediátrica é definida quando há sintomas de alarme: falha de crescimento, recusa alimentar, irritabilidade excessiva, apneia ou sinais de esofagite. O caso preenche critérios de DRGE pelo prejuízo no ganho ponderal."
+  },
+  {
+    question: "Mulher, 47 anos, com DRGE e diagnóstico recente de asma de início tardio. Após otimização do IBP, a tosse e o broncoespasmo melhoram parcialmente. Qual mecanismo relaciona DRGE e broncoespasmo neste caso?",
+    options: [
+      "Reflexo vagal esofagobrônquico: a acidez esofágica ativa o nervo vago, provocando broncoconstrição",
+      "Pneumonite química por aspiração maciça de ácido, causando fibrose e hiperrresponsividade difusa",
+      "Alergia cruzada entre pepsinogênio sérico elevado e antígenos do epitélio brônquico do paciente",
+      "Hipersecreção de muco brônquico induzida pela gastrina elevada em resposta ao refluxo ácido",
+      "Comprometimento diafragmático pela hérnia de hiato, reduzindo capacidade ventilatória e favorecendo broncoespasmo"
+    ],
+    correctIndex: 0,
+    explanation: "A DRGE pode desencadear ou agravar asma por dois mecanismos principais: microaspiração de refluxato ácido que irrita diretamente a mucosa brônquica, e reflexo vagal esofagobrônquico, no qual a acidificação esofágica ativa aferentes vagais que disparam broncoconstrição reflexa, sem aspiração. A melhora parcial com IBP é típica da asma com DRGE, pois o componente inflamatório alérgico pode persistir."
+  }
+];
+
+function shuffleQuestion(q) {
+  const correctText = q.options[q.correctIndex];
+  const shuffled = [...q.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { ...q, options: shuffled, correctIndex: shuffled.indexOf(correctText) };
+}
+
+const questions = rawQuestions.map(shuffleQuestion).sort(() => Math.random() - 0.5);
+let current = 0, correct = 0, wrong = 0, answered = false;
+
+function startQuiz() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const letters = ['A','B','C','D','E'];
+  const pct = Math.round((current / questions.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Questão ${current + 1} de ${questions.length}`;
+  document.getElementById('questionCard').innerHTML = `
+    <div class="question-meta">
+      <span class="question-number">Questão ${current + 1}</span>
+      <span class="question-area">DRGE</span>
+    </div>
+    <div class="question-text">${q.question}</div>
+    <div class="options-list">
+      ${q.options.map((opt, i) => `
+        <button class="option-btn" onclick="selectAnswer(${i})" id="opt${i}">
+          <span class="option-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('')}
+    </div>
+    <div id="feedback" style="display:none"></div>
+  `;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+  const isCorrect = idx === q.correctIndex;
+  buttons[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correctIndex].classList.add('correct');
+  if (isCorrect) correct++; else wrong++;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.innerHTML = `
+    <div class="feedback-badge ${isCorrect ? 'correct-badge' : 'wrong-badge'}">${isCorrect ? '✓ Correto!' : '✗ Incorreto'}</div>
+    <div class="explanation-box"><strong>Explicação:</strong>${q.explanation}</div>
+    <button class="btn-next" onclick="nextQuestion()">${current + 1 < questions.length ? 'Próxima questão →' : 'Ver resultado'}</button>
+  `;
+}
+
+function nextQuestion() {
+  current++;
+  if (current < questions.length) renderQuestion();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('resultScreen').classList.remove('hidden');
+  const pct = Math.round((correct / questions.length) * 100);
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('totalCorrect').textContent = correct;
+  document.getElementById('totalWrong').textContent = wrong;
+}
+
+function restartQuiz() {
+  current = 0; correct = 0; wrong = 0;
+  document.getElementById('resultScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  renderQuestion();
+}
+</script>
+</body>
+</html>
